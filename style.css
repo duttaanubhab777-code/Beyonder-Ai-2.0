@@ -538,3 +538,10 @@ nav h1 span{
 [data-theme="light"] .msg-logo i {
     text-shadow: 0 0 6px rgba(90, 50, 250, 0.4);
   }
+
+
+
+body.checking-auth .chat-area,
+body.checking-auth .chat-input-area {
+    visibility: hidden;
+}
