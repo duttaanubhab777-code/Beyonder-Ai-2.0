@@ -148,7 +148,8 @@ const API_URL = "https://beyonder-api.vercel.app/api/chat";
 
 
 // 👇 Python (Flask) সার্ভারে চ্যাট সেভ করার লিঙ্ক
-const DB_API_URL = "http://127.0.0.1:5000/api/save-chat";
+const DB_API_URL = "https://beyonderai.pythonanywhere.com/api/save-chat";
+
 
 // 👇 Python সার্ভারে ডেটা পাঠানোর ফাংশন
 const saveToFriendDatabase = async (userText, aiText) => {
@@ -158,6 +159,7 @@ const saveToFriendDatabase = async (userText, aiText) => {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: 'include', // <--- এই লাইনটি অবশ্যই যুক্ত করতে হবে
             body: JSON.stringify({
                 user_message: userText,
                 ai_response: aiText
@@ -170,6 +172,7 @@ const saveToFriendDatabase = async (userText, aiText) => {
         console.error("Database কানেক্ট হতে সমস্যা হয়েছে:", error);
     }
 };
+
 
 
 
