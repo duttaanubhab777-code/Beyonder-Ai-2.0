@@ -102,16 +102,16 @@
        token/password rakha theke এটা onek beshi নিরাপদ, karon localStorage
        XSS attack diye read kora jay, httpOnly cookie jay na)
        ============================================================ */
-        /* ============================================================
+            /* ============================================================
        API HELPER — Python backend-er shathe fetch connect korar jonno
        ============================================================ */
-    const API_BASE = 'http://127.0.0.1:5000'; // ফ্লাস্ক সার্ভারের লিংক যোগ করা হলো
+    const API_BASE = 'https://beyonderai.pythonanywhere.com'; // PythonAnywhere-এর লিংক
 
     async function apiRequest(url, payload){
-        const res = await fetch(API_BASE + url, { // API_BASE যোগ করা হলো
+        const res = await fetch(API_BASE + url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // credentials: 'include', <-- এই লাইনটা মুছে দেওয়া হলো
+            credentials: 'include', // <--- এটি চালু করা হলো (খুবই জরুরি)
             body: JSON.stringify(payload)
         });
         let data = {};
@@ -121,6 +121,7 @@
         }
         return data;
     }
+
     
     /* [BACKEND DEV INSTRUCTION]
        "Already logged in" check ekhane localStorage diye kora hocche na — eta
