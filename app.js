@@ -142,6 +142,23 @@ const chat = document.getElementById("chat-area");
 const WELCOME_MESSAGE = "Hello, I am Beyonder. How can I help you?";
 const STORAGE_KEY = "beyonder-chat-history";
 
+const checkAuth = async () => {
+    try {
+        const res = await fetch("https://beyonderai.pythonanywhere.com/api/me", {
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (!data.logged_in) {
+            window.location.href = "login.html";
+            return false;
+        }
+        return true;
+    } catch (e) {
+        window.location.href = "login.html";
+        return false;
+    }
+};
+
 let chatHistory = [];
 
 const API_URL = "https://beyonder-api.vercel.app/api/chat";
@@ -273,7 +290,12 @@ const startNewChat = () => {
 
 newChatBtn.addEventListener("click", startNewChat);
 
-loadHistory();
+(async () => {
+    const ok = await checkAuth();
+    if (ok) {
+        loadHistory();
+    }
+})();
 
 
 /* =========================================================
