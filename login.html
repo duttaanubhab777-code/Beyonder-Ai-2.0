@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyonder AI - Login</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- index.html-er shathe ekoi design system use korar jonno style.css link kora hoyeche -->
+<link rel="stylesheet" href="style.css">
+
+<style>
+    /* ---------- login/signup page-specific styling (style.css-er variable use kore) ---------- */
+    body{ align-items:stretch; }
+
+    .auth-page-wrapper{
+        flex:1;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:10px 4px;
+        overflow-y:auto;
+    }
+
+    .screen{ display:none; width:100%; }
+    .screen.active{ display:flex; justify-content:center; animation:fadeIn 0.35s ease; }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+    .auth-card{
+        width:100%;
+        max-width:400px;
+        background:var(--bg-panel);
+        border:1px solid var(--border-subtle);
+        border-radius:20px;
+        padding:34px 28px;
+        text-align:center;
+        transition:background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+    [data-theme="light"] .auth-card{ border:none; border-radius:22px; box-shadow:var(--neu-out); }
+
+    .auth-card h2{
+        font-family:'Space Grotesk', sans-serif;
+        font-size:1.5rem;
+        font-weight:600;
+        margin-bottom:6px;
+    }
+    .auth-card .subtitle{ color:var(--text-muted); font-size:0.9rem; margin-bottom:26px; }
+
+    .auth-form{ display:flex; flex-direction:column; gap:16px; text-align:left; }
+
+    .input-group{ position:relative; }
+    .input-group .field-icon{
+        position:absolute; left:14px; top:50%; transform:translateY(-50%);
+        color:var(--text-muted); font-size:14px; pointer-events:none;
+    }
+    .auth-input{
+        width:100%;
+        padding:13px 42px 13px 40px;
+        border-radius:12px;
+        border:1px solid var(--border-subtle);
+        background:var(--bg-panel-2);
+        color:var(--text-primary);
+        font-family:inherit;
+        font-size:15px;
+        outline:none;
+        transition:border-color .2s ease, box-shadow .2s ease;
+    }
+    .auth-input::placeholder{ color:var(--text-muted); }
+    .auth-input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,108,255,0.15); }
+    [data-theme="light"] .auth-input{ border:none; box-shadow:var(--neu-in-sm); }
+
+    .toggle-pass{
+        position:absolute; right:12px; top:50%; transform:translateY(-50%);
+        background:none; border:none; color:var(--text-muted);
+        font-size:14px; cursor:pointer; padding:4px;
+    }
+    .toggle-pass:hover{ color:var(--accent); }
+
+    .strength-wrap{ display:flex; flex-direction:column; gap:6px; }
+    .strength-track{ height:4px; border-radius:4px; background:var(--border-subtle); overflow:hidden; }
+    .strength-fill{ height:100%; width:0%; border-radius:4px; background:#d93025; transition:width .25s ease, background-color .25s ease; }
+    .strength-label{ font-size:0.75rem; color:var(--text-muted); }
+
+    .auth-btn{
+        position:relative;
+        background:linear-gradient(135deg, var(--accent), var(--accent-2));
+        color:#fff;
+        border:none;
+        padding:13px;
+        border-radius:12px;
+        font-family:inherit;
+        font-size:15px;
+        font-weight:600;
+        cursor:pointer;
+        box-shadow:0 4px 14px rgba(124,108,255,0.35);
+        transition:transform .15s ease, opacity .2s ease;
+        display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .auth-btn:hover{ transform:translateY(-1px); }
+    .auth-btn:active{ transform:scale(0.98); }
+    .auth-btn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
+    .auth-btn .fa-spinner{ animation:spin .7s linear infinite; }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    .auth-switch{ margin-top:22px; font-size:0.87rem; color:var(--text-muted); text-align:center; }
+    .auth-switch span{ color:var(--accent); font-weight:600; cursor:pointer; }
+    .auth-switch span:hover{ text-decoration:underline; }
+
+    .auth-error{
+        display:none; font-size:0.82rem; color:#ff6b6b;
+        background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.25);
+        padding:8px 10px; border-radius:8px;
+    }
+    [data-theme="light"] .auth-error{ color:#c0392b; background:rgba(192,57,43,0.08); border-color:rgba(192,57,43,0.2); }
+
+    .otp-msg{
+        font-size:0.85rem; color:var(--accent-2); font-weight:500;
+        background:rgba(0,217,255,0.08); border:1px solid rgba(0,217,255,0.2);
+        padding:8px 10px; border-radius:8px; text-align:center;
+    }
+    [data-theme="light"] .otp-msg{ color:var(--accent-2); }
+
+    .otp-input{ text-align:center; letter-spacing:8px; font-weight:600; font-size:18px !important; padding-left:15px !important; }
+
+    @media (prefers-reduced-motion: reduce){
+        .auth-btn .fa-spinner{ animation:none !important; }
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<nav class="ai">
+    <div class="logo-circle">
+        <span id="logo"><i class="fa-solid fa-atom"></i></span>
+    </div>
+    <h1>Beyonder <span>AI</span></h1>
+    <div class="nav-actions">
+        <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle dark or light theme">
+            <i class="fa-solid fa-sun"></i>
+        </button>
+    </div>
+</nav>
+
+<div class="auth-page-wrapper">
+
+    <!-- ===== LOGIN ===== -->
+    <div id="login-screen" class="screen active">
+        <div class="auth-card">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Login to chat with Beyonder AI</p>
+
+            <form class="auth-form" id="login-form" autocomplete="on" novalidate>
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope field-icon"></i>
+                    <input type="email" id="login-email" class="auth-input" placeholder="Email Address" autocomplete="email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input type="password" id="login-password" class="auth-input" placeholder="Password" autocomplete="current-password" required>
+                    <button type="button" class="toggle-pass" data-target="login-password" aria-label="Show password">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+                <div id="login-error" class="auth-error"></div>
+                <button type="submit" id="login-submit-btn" class="auth-btn">
+                    <span class="btn-text">Login</span>
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Don't have an account? <span data-switch="signup-screen">Sign Up</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SIGNUP ===== -->
+    <div id="signup-screen" class="screen">
+        <div class="auth-card">
+            <h2>Create Account</h2>
+            <p class="subtitle">Join Beyonder AI today</p>
+
+            <form class="auth-form" id="signup-form" autocomplete="on" novalidate>
+                <div class="input-group">
+                    <i class="fa-regular fa-user field-icon"></i>
+                    <input type="text" id="signup-name" class="auth-input" placeholder="Full Name" autocomplete="name" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope field-icon"></i>
+                    <input type="email" id="signup-email" class="auth-input" placeholder="Email Address" autocomplete="email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input type="password" id="signup-password" class="auth-input" placeholder="Create Password" autocomplete="new-password" required>
+                    <button type="button" class="toggle-pass" data-target="signup-password" aria-label="Show password">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+                <div class="strength-wrap">
+                    <div class="strength-track"><div id="strength-fill" class="strength-fill"></div></div>
+                    <div id="strength-label" class="strength-label">Password strength</div>
+                </div>
+                <div id="signup-error" class="auth-error"></div>
+                <button type="submit" id="signup-submit-btn" class="auth-btn">
+                    <span class="btn-text">Send OTP</span>
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Already have an account? <span data-switch="login-screen">Login</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OTP ===== -->
+    <div id="otp-screen" class="screen">
+        <div class="auth-card">
+            <h2>Verify Email</h2>
+            <p class="subtitle">We sent a 6-digit code to your email</p>
+
+            <form class="auth-form" id="otp-form" autocomplete="off" novalidate>
+                <div id="otp-success-msg" class="otp-msg" style="display:none;">OTP Sent Successfully!</div>
+                <div class="input-group">
+                    <i class="fa-solid fa-key field-icon"></i>
+                    <input type="text" id="otp-input" class="auth-input otp-input" placeholder="------" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required>
+                </div>
+                <div id="otp-error" class="auth-error"></div>
+                <button type="submit" id="otp-submit-btn" class="auth-btn">
+                    <span class="btn-text">Verify &amp; Sign Up</span>
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Wrong email? <span data-switch="signup-screen">Go back</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="login.js"></script>
+</body>
+</html>
