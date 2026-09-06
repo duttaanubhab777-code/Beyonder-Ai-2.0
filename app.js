@@ -144,7 +144,7 @@ const STORAGE_KEY = "beyonder-chat-history";
 
 let chatHistory = [];
 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${API_KEY}`;
+const API_URL = "https://beyonder-api.vercel.app/api/chat";
 
 
 // 👇 Python (Flask) সার্ভারে চ্যাট সেভ করার লিঙ্ক
