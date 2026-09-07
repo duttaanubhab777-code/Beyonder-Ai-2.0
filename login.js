@@ -107,19 +107,26 @@
        ============================================================ */
     const API_BASE = 'https://anubhabdutta.pythonanywhere.com'; // PythonAnywhere-এর লিংক
 
+    
     async function apiRequest(url, payload){
+        const token = localStorage.getItem("beyonder_token");
+        
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) {
+            headers['Authorization'] = token;
+        }
+
         const res = await fetch(API_BASE + url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', // <--- এটি চালু করা হলো (খুবই জরুরি)
+            headers: headers,
             body: JSON.stringify(payload)
         });
         let data = {};
         try { data = await res.json(); } catch(e) {}
-        if (!res.ok){
+        if (!res.ok || data.success === false){
             throw new Error(data.message || 'Something went wrong. Please try again.');
         }
-        return data;
+        return data; 
     }
 
     
@@ -159,10 +166,15 @@
                - Fail: generic message pathabe — "Invalid email or password" (specific bole দেওয়া jabe na
                  j email ache kina, eta user-enumeration attack thamay)
                - Brute-force thekano jonno backend e rate-limiting (e.g. 5 try / 15 min per IP+email) rakha uchit */
-            await apiRequest('/api/login', { email, password });
+                    const res = await apiRequest('/api/login', { email, password });
 
-            localStorage.setItem("beyonder-user", email);
-            window.location.href = "index.html";
+        if (res.token) {
+            localStorage.setItem("beyonder_token", res.token);
+        }
+        
+        localStorage.setItem("beyonder-user", email);
+        window.location.href = "index.html";
+               
         } catch (err) {
             showError('login-error', err.message || 'Invalid credentials!');
             document.getElementById('login-password').value = ''; // fail hole password field clear kora hocche
@@ -244,11 +256,17 @@
                  pending record delete kore, httpOnly session cookie set kore { success:true } pathabe
                - OTP wrong/expired hole generic error pathabe, ar brute-force thekano jonno
                  max 5 attempt-er por OTP invalidate kore dewa uchit */
-            await apiRequest('/api/signup/verify-otp', { email: pendingSignupEmail, otp });
+                    
+            const res = await apiRequest('/api/signup/verify-otp', { email: pendingSignupEmail, otp });
+
+            if (res.token) {
+                localStorage.setItem("beyonder_token", res.token);
+            }
 
             localStorage.setItem("beyonder-user", pendingSignupEmail);
             window.location.href = "index.html";
         } catch (err) {
+                           
             showError('otp-error', err.message || 'Invalid OTP!');
             setLoading(btn, false);
         }
