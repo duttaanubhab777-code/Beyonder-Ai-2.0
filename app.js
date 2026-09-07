@@ -247,12 +247,7 @@ const logoutUser = () => {
 };
 
 
-        const result = await response.json();
-        console.log("Database Response:", result);
-    } catch (error) {
-        console.error("Database কানেক্ট হতে সমস্যা হয়েছে:", error);
-    }
-};
+        
 
 
 
