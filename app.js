@@ -152,6 +152,7 @@ const checkAuth = async () => {
             window.location.href = "login.html";
             return false;
         }
+        document.body.classList.remove("checking-auth");
         return true;
     } catch (e) {
         window.location.href = "login.html";
