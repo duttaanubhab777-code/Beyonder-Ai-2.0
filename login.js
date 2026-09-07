@@ -105,7 +105,7 @@
             /* ============================================================
        API HELPER — Python backend-er shathe fetch connect korar jonno
        ============================================================ */
-    const API_BASE = 'https://beyonderai.pythonanywhere.com'; // PythonAnywhere-এর লিংক
+    const API_BASE = 'https://anubhabdutta.pythonanywhere.com'; // PythonAnywhere-এর লিংক
 
     async function apiRequest(url, payload){
         const res = await fetch(API_BASE + url, {
