@@ -329,9 +329,11 @@ newChatBtn.addEventListener("click", startNewChat);
 (async () => {
     const ok = await checkAuth();
     if (ok) {
+        document.body.classList.remove("checking-auth"); // <--- ঠিক এই লাইনটি এখানে জুড়ে দিন
         loadHistory();
     }
 })();
+
 
 
 /* =========================================================
