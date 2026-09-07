@@ -168,29 +168,6 @@ const checkAuth = async () => {
 
 
 
-/* =========================================================
-   LOGOUT FUNCTION
-   ========================================================= */
-const logoutUser = () => {
-    // ব্রাউজারের স্টোরেজ থেকে চ্যাট হিস্ট্রি মুছে ফেলা হচ্ছে (যাতে অন্য কেউ দেখতে না পায়)
-    localStorage.removeItem(STORAGE_KEY);
-    
-    // ব্যাকএন্ডকে (Python) বলা হচ্ছে ইউজারের সেশন ক্লিয়ার করতে
-    fetch("https://anubhabdutta.pythonanywhere.com/api/logout", {
-        method: "POST",
-        credentials: "include" 
-    })
-    .then(response => response.json())
-    .then(data => {
-        // ব্যাকএন্ড থেকে সাকসেস মেসেজ এলে লগইন পেজে পাঠিয়ে দেওয়া হবে
-        window.location.href = "login.html"; // আপনার HTML ফাইলের নাম যদি আলাদা হয়, সেটা এখানে দেবেন
-    })
-    .catch(err => {
-        console.error("Logout Error:", err);
-        window.location.href = "login.html"; // কোনো এরর হলেও যেন লগইন পেজে চলে যায়
-    });
-};
-
 
 let chatHistory = [];
 
