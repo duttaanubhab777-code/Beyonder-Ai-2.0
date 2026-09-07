@@ -144,7 +144,7 @@ const STORAGE_KEY = "beyonder-chat-history";
 
 const checkAuth = async () => {
     try {
-        const res = await fetch("https://beyonderai.pythonanywhere.com/api/me", {
+        const res = await fetch("https://anubhabdutta.pythonanywhere.com/api/me", {
             credentials: 'include'
         });
         const data = await res.json();
@@ -165,7 +165,7 @@ const API_URL = "https://beyonder-api.vercel.app/api/chat";
 
 
 // 👇 Python (Flask) সার্ভারে চ্যাট সেভ করার লিঙ্ক
-const DB_API_URL = "https://beyonderai.pythonanywhere.com/api/save-chat";
+const DB_API_URL = "https://anubhabdutta.pythonanywhere.com/api/save-chat";
 
 
 // 👇 Python সার্ভারে ডেটা পাঠানোর ফাংশন
