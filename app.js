@@ -143,22 +143,29 @@ const WELCOME_MESSAGE = "Hello, I am Beyonder. How can I help you?";
 const STORAGE_KEY = "beyonder-chat-history";
 
 const checkAuth = async () => {
+    const token = localStorage.getItem("beyonder_token");
+    if (!token) {
+        window.location.href = "login.html";
+        return false;
+    }
     try {
         const res = await fetch("https://anubhabdutta.pythonanywhere.com/api/me", {
-            credentials: 'include'
+            headers: {
+                "Authorization": token // টোকেন পাঠানো হচ্ছে
+            }
         });
         const data = await res.json();
         if (!data.logged_in) {
             window.location.href = "login.html";
             return false;
         }
-        document.body.classList.remove("checking-auth");
         return true;
     } catch (e) {
         window.location.href = "login.html";
         return false;
     }
 };
+
 
 
 /* =========================================================
@@ -194,20 +201,51 @@ const API_URL = "https://beyonder-api.vercel.app/api/chat";
 const DB_API_URL = "https://anubhabdutta.pythonanywhere.com/api/save-chat";
 
 
-// 👇 Python সার্ভারে ডেটা পাঠানোর ফাংশন
+// 👇 Python সার্ভারে ডেটা পাঠানোর ফাংশন (Token দিয়ে)
 const saveToFriendDatabase = async (userText, aiText) => {
+    const token = localStorage.getItem("beyonder_token");
     try {
         const response = await fetch(DB_API_URL, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": token // টোকেন পাঠানো হচ্ছে
             },
-            credentials: 'include', // <--- এই লাইনটি অবশ্যই যুক্ত করতে হবে
             body: JSON.stringify({
                 user_message: userText,
                 ai_response: aiText
             })
         });
+
+        const result = await response.json();
+        console.log("Database Response:", result);
+    } catch (error) {
+        console.error("Database কানেক্ট হতে সমস্যা হয়েছে:", error);
+    }
+};
+
+
+/* =========================================================
+   LOGOUT FUNCTION
+   ========================================================= */
+const logoutUser = () => {
+    const token = localStorage.getItem("beyonder_token");
+    
+    // ব্রাউজারের স্টোরেজ ক্লিয়ার
+    localStorage.removeItem(STORAGE_KEY); 
+    localStorage.removeItem("beyonder_token"); 
+    
+    // সার্ভার থেকে লগআউট
+    fetch("https://anubhabdutta.pythonanywhere.com/api/logout", {
+        method: "POST",
+        headers: {
+            "Authorization": token
+        }
+    }).finally(() => {
+        window.location.href = "login.html"; // আপনার লগইন পেজের নাম
+    });
+};
+
 
         const result = await response.json();
         console.log("Database Response:", result);
