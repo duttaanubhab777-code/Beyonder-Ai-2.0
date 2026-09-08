@@ -43,9 +43,6 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
     /* ============================================================
        PASSWORD STRENGTH METER (client-side hint — real enforcement backend e hobe)
        ============================================================ */
-    const signupPassInput = document.getElementById('signup-password');
-    const strengthFill = document.getElementById('strength-fill');
-    const strengthLabel = document.getElementById('strength-label');
     const strengthLevels = [
         { color:'#d93025', label:'Too weak' },
         { color:'#f2994a', label:'Weak' },
@@ -53,19 +50,28 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         { color:'#27ae60', label:'Strong' },
         { color:'#00d9ff', label:'Very strong' }
     ];
-    signupPassInput.addEventListener('input', () => {
-        const v = signupPassInput.value;
-        let score = 0;
-        if (v.length >= 8) score++;
-        if (/[A-Z]/.test(v)) score++;
-        if (/[0-9]/.test(v)) score++;
-        if (/[^A-Za-z0-9]/.test(v)) score++;
-        if (v.length === 0) { strengthFill.style.width = '0%'; strengthLabel.textContent = 'Password strength'; return; }
-        const level = strengthLevels[score];
-        strengthFill.style.width = `${(score + 1) * 20}%`;
-        strengthFill.style.backgroundColor = level.color;
-        strengthLabel.textContent = level.label;
-    });
+
+    function attachStrengthMeter(inputId, fillId, labelId){
+        const input = document.getElementById(inputId);
+        const fill = document.getElementById(fillId);
+        const label = document.getElementById(labelId);
+        input.addEventListener('input', () => {
+            const v = input.value;
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            if (v.length === 0) { fill.style.width = '0%'; label.textContent = 'Password strength'; return; }
+            const level = strengthLevels[score];
+            fill.style.width = `${(score + 1) * 20}%`;
+            fill.style.backgroundColor = level.color;
+            label.textContent = level.label;
+        });
+    }
+
+    attachStrengthMeter('signup-password', 'strength-fill', 'strength-label');
+    attachStrengthMeter('reset-new-password', 'reset-strength-fill', 'reset-strength-label');
 
     /* ============================================================
        HELPERS
