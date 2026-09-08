@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard — Beyonder AI</title>
+<style>
+    body {
+        background: #0d1117;
+        color: #e6e6e6;
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 30px;
+    }
+    h1 { display: flex; align-items: center; gap: 10px; }
+    .logout {
+        float: right;
+        color: #f87171;
+        text-decoration: none;
+    }
+    .stats {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0 40px;
+    }
+    .card {
+        background: #161b22;
+        padding: 20px 30px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .card .num { font-size: 28px; font-weight: bold; }
+    .card .label { color: #8b949e; font-size: 14px; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 40px;
+        background: #161b22;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #30363d;
+    }
+    th {
+        color: #8b949e;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+    .success { color: #4ade80; background: #14331f; padding: 3px 10px; border-radius: 10px; font-size: 12px; }
+    .failed { color: #f87171; background: #331414; padding: 3px 10px; border-radius: 10px; font-size: 12px; }
+    .del-btn {
+        background: #b91c1c;
+        border: none;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .empty { color: #8b949e; padding: 16px; }
+</style>
+</head>
+<body>
+    <a href="/admin/logout" class="logout">Logout</a>
+    <h1>👤 Admin Dashboard</h1>
+
+    <div class="stats">
+        <div class="card">
+            <div class="num">{{ users|length }}</div>
+            <div class="label">Total Users</div>
+        </div>
+        <div class="card">
+            <div class="num">{{ chats|length }}</div>
+            <div class="label">Chat Messages (recent)</div>
+        </div>
+        <div class="card">
+            <div class="num">{{ logs|length }}</div>
+            <div class="label">Login Attempts (recent)</div>
+        </div>
+    </div>
+
+    <h2>Registered Users</h2>
+    {% if users %}
+    <table>
+        <tr><th>Name</th><th>Email</th><th>Created</th><th>Last Login</th><th></th></tr>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.name }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.created_at|datetimeformat }}</td>
+            <td>{{ u.last_login_at|datetimeformat if u.last_login_at else "-" }}</td>
+            <td>
+                <form method="POST" action="/admin/delete-user" style="margin:0;">
+                    <input type="hidden" name="email" value="{{ u.email }}">
+                    <button class="del-btn" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">কোনো ইউজার নেই এখনো।</div>
+    {% endif %}
+
+    <h2>Chat History (সব ইউজারের, সাম্প্রতিক ৫০০টা)</h2>
+    {% if chats %}
+    <table>
+        <tr><th>Email</th><th>User Message</th><th>AI Response</th><th>Time</th></tr>
+        {% for c in chats %}
+        <tr>
+            <td>{{ c.user_email }}</td>
+            <td>{{ c.user_message }}</td>
+            <td>{{ c.ai_response }}</td>
+            <td>{{ c.timestamp|datetimeformat }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">কোনো চ্যাট হিস্ট্রি নেই এখনো।</div>
+    {% endif %}
+
+    <h2>Login Attempts</h2>
+    {% if logs %}
+    <table>
+        <tr><th>Email</th><th>IP</th><th>Time</th><th>Status</th></tr>
+        {% for l in logs %}
+        <tr>
+            <td>{{ l.user_email }}</td>
+            <td>{{ l.ip_address }}</td>
+            <td>{{ l.timestamp|datetimeformat }}</td>
+            <td>
+                {% if l.success %}
+                <span class="success">Success</span>
+                {% else %}
+                <span class="failed">Failed</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div class="empty">কোনো লগইন লগ নেই এখনো।</div>
+    {% endif %}
+</body>
+</html>
