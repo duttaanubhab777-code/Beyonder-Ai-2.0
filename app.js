@@ -378,7 +378,8 @@ IDENTITY:
 Today's date: ${new Date().toDateString()}`
                     }]
                 },
-                contents: chatHistory
+                contents: chatHistory,
+               tools: [{ "google_search": {} }]
                
             })
         });
