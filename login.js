@@ -17,7 +17,7 @@
     /* ============================================================
        SCREEN SWITCHER
        ============================================================ */
-    const screens = ['login-screen', 'signup-screen', 'otp-screen'];
+const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen', 'reset-screen'];
     const switchScreen = (target) => {
         screens.forEach(s => document.getElementById(s).classList.remove('active'));
         document.getElementById(target).classList.add('active');
