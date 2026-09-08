@@ -142,6 +142,11 @@ const chat = document.getElementById("chat-area");
 const WELCOME_MESSAGE = "Hello, I am Beyonder. How can I help you?";
 const STORAGE_KEY = "beyonder-chat-history";
 
+// All Beyonder backend (PythonAnywhere) calls go through this one constant —
+// previously the same URL was hardcoded in four separate places, which made
+// it easy for them to drift out of sync during future edits.
+const BACKEND_BASE = "https://anubhabdutta.pythonanywhere.com";
+
 const checkAuth = async () => {
     const token = localStorage.getItem("beyonder_token");
     if (!token) {
@@ -149,7 +154,7 @@ const checkAuth = async () => {
         return false;
     }
     try {
-        const res = await fetch("https://anubhabdutta.pythonanywhere.com/api/me", {
+        const res = await fetch(`${BACKEND_BASE}/api/me`, {
             headers: {
                 "Authorization": token // টোকেন পাঠানো হচ্ছে
             }
@@ -175,7 +180,11 @@ const API_URL = "https://beyonder-api.vercel.app/api/chat";
 
 
 // 👇 Python (Flask) সার্ভারে চ্যাট সেভ করার লিঙ্ক
-const DB_API_URL = "https://anubhabdutta.pythonanywhere.com/api/save-chat";
+const DB_API_URL = `${BACKEND_BASE}/api/save-chat`;
+
+// 👇 Admin panel থেকে সরাসরি পাঠানো মেসেজ চেক করার এন্ডপয়েন্ট (নতুন)
+const CHECK_MESSAGES_URL = `${BACKEND_BASE}/api/check-messages`;
+const ADMIN_MSG_ID_KEY = "beyonder-last-admin-msg-id";
 
 
 // 👇 Python সার্ভারে ডেটা পাঠানোর ফাংশন (Token দিয়ে)
@@ -211,9 +220,10 @@ const logoutUser = () => {
     // ব্রাউজারের স্টোরেজ ক্লিয়ার
     localStorage.removeItem(STORAGE_KEY); 
     localStorage.removeItem("beyonder_token"); 
+    localStorage.removeItem(ADMIN_MSG_ID_KEY);
     
     // সার্ভার থেকে লগআউট
-    fetch("https://anubhabdutta.pythonanywhere.com/api/logout", {
+    fetch(`${BACKEND_BASE}/api/logout`, {
         method: "POST",
         headers: {
             "Authorization": token
@@ -326,9 +336,44 @@ const startNewChat = () => {
 
 newChatBtn.addEventListener("click", startNewChat);
 
+/* =========================================================
+   ADMIN MESSAGE POLLING (new)
+   Lets an admin drop a message directly into this user's chat from
+   the admin dashboard. Polls quietly in the background — no visual
+   change to the chat UI itself, messages just appear as a normal
+   incoming reply.
+   ========================================================= */
+const ADMIN_MESSAGE_POLL_MS = 8000;
+
+const pollAdminMessages = async () => {
+    const token = localStorage.getItem("beyonder_token");
+    if (!token) return;
+
+    const sinceId = localStorage.getItem(ADMIN_MSG_ID_KEY) || "0";
+    try {
+        const res = await fetch(`${CHECK_MESSAGES_URL}?since_id=${encodeURIComponent(sinceId)}`, {
+            headers: { "Authorization": token }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success || !data.messages || data.messages.length === 0) return;
+
+        data.messages.forEach((msg) => {
+            chatHistory.push({ role: "model", parts: [{ text: msg.text }] });
+            appendMessage(msg.text, "incoming");
+            localStorage.setItem(ADMIN_MSG_ID_KEY, String(msg.id));
+        });
+        saveHistory();
+    } catch (e) {
+        console.error("Could not check for admin messages:", e);
+    }
+};
+
 (async () => {
     const ok = await checkAuth();
     if (ok) {
+        pollAdminMessages();
+        setInterval(pollAdminMessages, ADMIN_MESSAGE_POLL_MS);
         document.body.classList.remove("checking-auth"); // <--- ঠিক এই লাইনটি এখানে জুড়ে দিন
         loadHistory();
     }
@@ -379,8 +424,6 @@ Today's date: ${new Date().toDateString()}`
                     }]
                 },
                 contents: chatHistory
-               
-               
             })
         });
 
