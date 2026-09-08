@@ -223,7 +223,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
             const res = await apiRequest('/api/signup/send-otp', { name, email, password });
 
             pendingSignupEmail = email; // shudhu email mone rakha hocche, password na
-            startResendTimer('signup', res.expires_in || 300, 'otp-resend-btn', 'otp-timer');
+            startResendTimer('signup', res.resend_after || 60, 'otp-resend-btn', 'otp-timer');
             document.getElementById('otp-success-msg').style.display = 'block';
             document.getElementById('otp-input').value = '';
             switchScreen('otp-screen');
@@ -326,7 +326,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
             const res = await apiRequest('/api/forgot-password/send-otp', { email });
             pendingResetEmail = email;
             switchScreen('reset-screen');
-            startResendTimer('reset', res.expires_in || 300, 'reset-resend-btn', 'reset-timer');
+            startResendTimer('reset', res.resend_after || 60, 'reset-resend-btn', 'reset-timer');
         } catch (err) {
             showError('forgot-error', err.message || 'Could not send reset code.');
         } finally {
@@ -381,7 +381,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
                 email: pendingSignupEmail,
                 password: document.getElementById('signup-password').value
             });
-            startResendTimer('signup', res.expires_in || 300, 'otp-resend-btn', 'otp-timer');
+            startResendTimer('signup', res.resend_after || 60, 'otp-resend-btn', 'otp-timer');
         } catch (err) {
             showError('otp-error', err.message || 'Could not resend code.');
         }
@@ -391,7 +391,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         if (!pendingResetEmail) return;
         try {
             const res = await apiRequest('/api/forgot-password/send-otp', { email: pendingResetEmail });
-            startResendTimer('reset', res.expires_in || 300, 'reset-resend-btn', 'reset-timer');
+            startResendTimer('reset', res.resend_after || 60, 'reset-resend-btn', 'reset-timer');
         } catch (err) {
             showError('reset-error', err.message || 'Could not resend code.');
         }
