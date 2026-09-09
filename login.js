@@ -17,7 +17,11 @@
     /* ============================================================
        SCREEN SWITCHER
        ============================================================ */
+<<<<<<< HEAD
+    const screens = ['login-screen', 'signup-screen', 'otp-screen'];
+=======
 const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen', 'reset-screen'];
+>>>>>>> upstream/main
     const switchScreen = (target) => {
         screens.forEach(s => document.getElementById(s).classList.remove('active'));
         document.getElementById(target).classList.add('active');
@@ -43,6 +47,12 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
     /* ============================================================
        PASSWORD STRENGTH METER (client-side hint — real enforcement backend e hobe)
        ============================================================ */
+<<<<<<< HEAD
+    const signupPassInput = document.getElementById('signup-password');
+    const strengthFill = document.getElementById('strength-fill');
+    const strengthLabel = document.getElementById('strength-label');
+=======
+>>>>>>> upstream/main
     const strengthLevels = [
         { color:'#d93025', label:'Too weak' },
         { color:'#f2994a', label:'Weak' },
@@ -50,6 +60,21 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         { color:'#27ae60', label:'Strong' },
         { color:'#00d9ff', label:'Very strong' }
     ];
+<<<<<<< HEAD
+    signupPassInput.addEventListener('input', () => {
+        const v = signupPassInput.value;
+        let score = 0;
+        if (v.length >= 8) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+        if (v.length === 0) { strengthFill.style.width = '0%'; strengthLabel.textContent = 'Password strength'; return; }
+        const level = strengthLevels[score];
+        strengthFill.style.width = `${(score + 1) * 20}%`;
+        strengthFill.style.backgroundColor = level.color;
+        strengthLabel.textContent = level.label;
+    });
+=======
 
     function attachStrengthMeter(inputId, fillId, labelId){
         const input = document.getElementById(inputId);
@@ -72,6 +97,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
 
     attachStrengthMeter('signup-password', 'strength-fill', 'strength-label');
     attachStrengthMeter('reset-new-password', 'reset-strength-fill', 'reset-strength-label');
+>>>>>>> upstream/main
 
     /* ============================================================
        HELPERS
@@ -87,8 +113,12 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         document.getElementById(id).style.display = 'none';
     }
     function clearAllErrors(){
+<<<<<<< HEAD
+        ['login-error','signup-error','otp-error'].forEach(hideError);
+=======
         ['login-error','signup-error','otp-error','forgot-error','reset-error'].forEach(hideError);
     
+>>>>>>> upstream/main
     }
     function setLoading(btn, loading, loadingText){
         const label = btn.querySelector('.btn-text');
@@ -226,10 +256,16 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
                - Email e OTP pathabe (raw password ar client-e ফেরত pathanor দরকার nei)
                - Note: eivabe korle পরের verify-otp step-e শুধু email + otp pathale hoy,
                  password abar client memory te বহন করা লাগে না (নিচে dekho) */
+<<<<<<< HEAD
+            await apiRequest('/api/signup/send-otp', { name, email, password });
+
+            pendingSignupEmail = email; // shudhu email mone rakha hocche, password na
+=======
             const res = await apiRequest('/api/signup/send-otp', { name, email, password });
 
             pendingSignupEmail = email; // shudhu email mone rakha hocche, password na
             startResendTimer('signup', res.resend_after || 60, 'otp-resend-btn', 'otp-timer');
+>>>>>>> upstream/main
             document.getElementById('otp-success-msg').style.display = 'block';
             document.getElementById('otp-input').value = '';
             switchScreen('otp-screen');
@@ -280,6 +316,8 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         }
     });
     
+<<<<<<< HEAD
+=======
 /* ============================================================
        OTP RESEND TIMER (reusable for signup + forgot-password)
        ============================================================ */
@@ -402,3 +440,4 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
             showError('reset-error', err.message || 'Could not resend code.');
         }
     });
+>>>>>>> upstream/main
