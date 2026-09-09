@@ -795,6 +795,9 @@ const openAdminChatModal = () => {
     adminChatPollTimer = setInterval(pollAdminChat, 4000);
 };
 
+
+const adminChatModalClose = document.getElementById("admin-chat-modal-close") || adminChatModal.querySelector(".fa-xmark").parentElement;
+
 const closeAdminChatModal = () => {
     adminChatModal.hidden = true;
     if (adminChatPollTimer) clearInterval(adminChatPollTimer);
