@@ -24,6 +24,42 @@ themeToggleBtn.addEventListener("click", () => {
     applyTheme(isLight ? "dark" : "light");
 });
 
+/* =========================================================
+   SIDEBAR MENU LOGIC
+   ========================================================= */
+const menuBtn = document.getElementById("menu-btn");
+const closeSidebarBtn = document.getElementById("close-sidebar-btn");
+const sidebarMenu = document.getElementById("sidebar-menu");
+const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+const openSidebar = () => {
+    sidebarOverlay.hidden = false;
+    setTimeout(() => {
+        sidebarOverlay.classList.add("active");
+        sidebarMenu.classList.add("open");
+    }, 10);
+};
+
+const closeSidebar = () => {
+    sidebarOverlay.classList.remove("active");
+    sidebarMenu.classList.remove("open");
+    setTimeout(() => { sidebarOverlay.hidden = true; }, 300);
+};
+
+if (menuBtn) menuBtn.addEventListener("click", openSidebar);
+if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
+
+// কোনো অপশনে ক্লিক করলে মেনু নিজে থেকে বন্ধ হবে
+document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+        if(item.id !== 'theme-toggle-btn') {
+            closeSidebar();
+        }
+    });
+});
+
+
 
 /* =========================================================
    PWA: INSTALL BUTTON + SERVICE WORKER
