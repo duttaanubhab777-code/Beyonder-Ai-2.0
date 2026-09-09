@@ -84,26 +84,44 @@ body{
 }
 
 
-/* ---------- nav ---------- */
-nav{
-    display:flex;
-    align-items:center;
-    justify-content: space-between; /* নতুন লেআউটের জন্য */
-    padding:14px 18px;
-    background:var(--bg-panel);
-    border:1px solid var(--border-subtle);
-    border-radius:16px;
-    margin-bottom:16px;
-    transition:background-color 0.25s ease, border-color 0.25s ease;
+/* =========================================
+NAVBAR CSS FIX (Replace your existing nav CSS with this)
+=========================================  */
+nav {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 12px 16px;
+background: var(--bg-panel);
+border: 1px solid var(--border-subtle);
+border-radius: 16px;
+margin-bottom: 16px;
+position: relative; /* লোগোকে ঠিক মাঝখানে রাখার জন্য খুব জরুরি */
+transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
-
-[data-theme="light"] nav{
-    border:none; border-radius:20px; box-shadow:var(--neu-out);
+[data-theme="light"] nav {
+border: none;
+border-radius: 20px;
+box-shadow: var(--neu-out);
 }
-
+/* লোগো ঠিক মাঝখানে ভাসমান থাকবে */
 .logo-wrapper {
-    display: flex; align-items: center; gap: 10px;
-    position: absolute; left: 50%; transform: translateX(-50%);
+display: flex;
+align-items: center;
+gap: 8px;
+position: absolute;
+left: 50%;
+transform: translateX(-50%);
+pointer-events: none; /* বাটনগুলোর কাজে যেন বাধা না দেয় */
+}
+/* ডানদিকের বাটনগুলো পাশাপাশি এক লাইনে রাখার কড়া নির্দেশ */
+.nav-actions {
+display: flex !important;
+flex-direction: row !important;
+align-items: center !important;
+gap: 10px !important;
+flex-wrap: nowrap !important; / নিচে নামা বন্ধ করবে */
+z-index: 10;
 }
 
 /* =========================================
@@ -928,6 +946,7 @@ color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পে�
 }
 
 /* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
+
 .admin-chat-msg .meta{
     order: 2; /* লেখার নিচে দেখানোর জন্য */
     align-self: flex-end; /* ডানদিকে রাখার জন্য */
@@ -980,9 +999,28 @@ color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পে�
     max-height:100px;
 }
 
-@media (max-width:480px){
-    .nav-actions{ gap:5px; }
-    .icon-btn{ width:32px; height:32px; font-size:12.5px; }
-    }
+@media (max-width: 480px) {
+nav {
+padding: 12px 14px;
+}
+.logo-wrapper h1 {
+font-size: 1.05rem;
+}
+.logo-wrapper h1 span {
+display: none; /* ছোট স্ক্রিনে 'AI' লেখাটি হাইড করে জায়গা বাঁচানোর জন্য */
+}
+.logo-circle {
+width: 32px;
+height: 32px;
+}
+#logo i {
+font-size: 14px;
+}
+.icon-btn {
+width: 34px;
+height: 34px;
+font-size: 13px;
+}
+}
 
     
