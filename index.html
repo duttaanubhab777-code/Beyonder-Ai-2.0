@@ -11,6 +11,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="stylesheet" href="style.css">
+
+  <!-- ===== PWA: installable "app" (manifest + icons + theme color) ===== -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0b10">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Beyonder AI">
 </head>
 <body class="checking-auth">
 
@@ -23,16 +30,24 @@
         <h1>Beyonder <span>AI</span></h1>
 
         <div class="nav-actions">
+            <button id="install-btn" class="icon-btn install-btn" title="Install app" aria-label="Install Beyonder AI app" hidden>
+                <i class="fa-solid fa-download"></i>
+            </button>
+            <button id="admin-chat-btn" class="icon-btn" title="Chat with Admin" aria-label="Chat with Admin">
+                <i class="fa-solid fa-headset"></i>
+            </button>
             <button id="new-chat-btn" class="icon-btn" title="New chat" aria-label="Start a new chat">
                 <i class="fa-solid fa-plus"></i>
             </button>
             <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle dark or light theme">
                 <i class="fa-solid fa-moon"></i>
             </button>
-           <!-- নতুন লগআউট বাটনটি এখানে যোগ করা হলো -->
+            <button id="profile-btn" class="icon-btn" title="Profile settings" aria-label="Profile settings">
+                <i class="fa-solid fa-user"></i>
+            </button>
             <button id="logout-btn" class="icon-btn" title="Logout" aria-label="Logout" onclick="logoutUser()">
                 <i class="fa-solid fa-right-from-bracket"></i>
-              
+            </button>
         </div>
     </nav>
 
@@ -47,11 +62,85 @@
 
     <p class="credit">Created by Anubhab Dutta & Arnab Adhikari</p>
 
+    <!-- ================= PROFILE SETTINGS MODAL ================= -->
+    <div id="profile-modal" class="modal-overlay" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-gear"></i> Profile Settings</h2>
+                <button class="modal-close" id="profile-modal-close" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="avatar-row">
+                    <div class="avatar-preview" id="avatar-preview">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <button class="btn-secondary" id="avatar-upload-btn" type="button">
+                            <i class="fa-solid fa-camera"></i> Change photo
+                        </button>
+                        <input type="file" id="avatar-file-input" accept="image/*" hidden>
+                        <div class="hint-text">JPG or PNG, up to ~1MB</div>
+                    </div>
+                </div>
+
+                <label class="field-label" for="profile-name-input">Name</label>
+                <input type="text" id="profile-name-input" class="auth-input" placeholder="Your name">
+
+                <label class="field-label">Email</label>
+                <input type="text" id="profile-email-display" class="auth-input" disabled>
+
+                <div id="profile-save-status" class="modal-status"></div>
+                <button class="auth-btn" id="profile-save-btn" type="button">
+                    <span class="btn-text">Save changes</span>
+                </button>
+
+                <hr class="modal-divider">
+
+                <h3 class="modal-subheading"><i class="fa-solid fa-lock"></i> Change Password</h3>
+                <p class="hint-text">For security, your actual password can't be displayed — only its encrypted form is stored. Enter your current password to set a new one.</p>
+
+                <label class="field-label" for="current-password-input">Current password</label>
+                <input type="password" id="current-password-input" class="auth-input" placeholder="Current password">
+
+                <label class="field-label" for="new-password-input">New password</label>
+                <input type="password" id="new-password-input" class="auth-input" placeholder="New password (min 8 characters)">
+
+                <div id="password-save-status" class="modal-status"></div>
+                <button class="auth-btn" id="password-save-btn" type="button">
+                    <span class="btn-text">Update password</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CHAT WITH ADMIN MODAL ================= -->
+    <div id="admin-chat-modal" class="modal-overlay" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-headset"></i> Chat with Admin</h2>
+                <button class="modal-close" id="admin-chat-modal-close" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body admin-chat-body">
+                <p class="hint-text">This is a private line straight to a Beyonder AI admin — separate from your AI chat above.</p>
+                <div id="admin-chat-messages" class="admin-chat-log"></div>
+                <div class="admin-chat-compose">
+                    <textarea id="admin-chat-text" placeholder="Type a message to the admin…" rows="1"></textarea>
+                    <button id="admin-chat-send" class="send-button" aria-label="Send to admin">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    
 
     <script src="app.js"></script>
 </body>
