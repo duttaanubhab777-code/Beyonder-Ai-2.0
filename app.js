@@ -421,7 +421,7 @@ newChatBtn.addEventListener("click", startNewChat);
    change to the chat UI itself, messages just appear as a normal
    incoming reply.
    ========================================================= */
-const ADMIN_MESSAGE_POLL_MS = 8000;
+const ADMIN_MESSAGE_POLL_MS = 30000;
 
 const pollAdminMessages = async () => {
     const token = localStorage.getItem("beyonder_token");
