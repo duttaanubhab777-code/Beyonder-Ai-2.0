@@ -11,6 +11,16 @@
     --code-bg:#0d0e14;
 }
 
+/* Any element styled with display:flex/grid via a class (modal-overlay,
+   icon-btn, etc.) needs this — otherwise the browser's own default
+   [hidden]{display:none} rule loses to our class rule and the element
+   stays visible even while "hidden" is set. This is what was making the
+   modal close (X) buttons look broken: JS was setting .hidden = true
+   correctly, but the modal never actually disappeared. */
+[hidden]{
+    display:none !important;
+}
+
 /* ---------- light theme override: neumorphic / soft-UI ---------- */
 /* Neumorphism er mul niyom: panel r background ekoi rong-er hoy,
    depth ashe shudhu duita shadow (ekta alo, ekta chaya) theke,
@@ -800,4 +810,5 @@ body.checking-auth .chat-input-area {
     .nav-actions{ gap:5px; }
     .icon-btn{ width:32px; height:32px; font-size:12.5px; }
     }
+
     
