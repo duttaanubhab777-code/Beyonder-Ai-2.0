@@ -545,6 +545,7 @@ body.checking-auth .chat-area,
 body.checking-auth .chat-input-area {
     visibility: hidden;
 }
+<<<<<<< HEAD
 
 /* =========================================
    Install App button — small accent so it stands out from the
@@ -800,3 +801,5 @@ body.checking-auth .chat-input-area {
     .nav-actions{ gap:5px; }
     .icon-btn{ width:32px; height:32px; font-size:12.5px; }
 }
+=======
+>>>>>>> upstream/main

@@ -17,7 +17,11 @@
     /* ============================================================
        SCREEN SWITCHER
        ============================================================ */
+<<<<<<< HEAD
     const screens = ['login-screen', 'signup-screen', 'otp-screen'];
+=======
+const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen', 'reset-screen'];
+>>>>>>> upstream/main
     const switchScreen = (target) => {
         screens.forEach(s => document.getElementById(s).classList.remove('active'));
         document.getElementById(target).classList.add('active');
@@ -43,9 +47,12 @@
     /* ============================================================
        PASSWORD STRENGTH METER (client-side hint — real enforcement backend e hobe)
        ============================================================ */
+<<<<<<< HEAD
     const signupPassInput = document.getElementById('signup-password');
     const strengthFill = document.getElementById('strength-fill');
     const strengthLabel = document.getElementById('strength-label');
+=======
+>>>>>>> upstream/main
     const strengthLevels = [
         { color:'#d93025', label:'Too weak' },
         { color:'#f2994a', label:'Weak' },
@@ -53,6 +60,7 @@
         { color:'#27ae60', label:'Strong' },
         { color:'#00d9ff', label:'Very strong' }
     ];
+<<<<<<< HEAD
     signupPassInput.addEventListener('input', () => {
         const v = signupPassInput.value;
         let score = 0;
@@ -66,6 +74,30 @@
         strengthFill.style.backgroundColor = level.color;
         strengthLabel.textContent = level.label;
     });
+=======
+
+    function attachStrengthMeter(inputId, fillId, labelId){
+        const input = document.getElementById(inputId);
+        const fill = document.getElementById(fillId);
+        const label = document.getElementById(labelId);
+        input.addEventListener('input', () => {
+            const v = input.value;
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            if (v.length === 0) { fill.style.width = '0%'; label.textContent = 'Password strength'; return; }
+            const level = strengthLevels[score];
+            fill.style.width = `${(score + 1) * 20}%`;
+            fill.style.backgroundColor = level.color;
+            label.textContent = level.label;
+        });
+    }
+
+    attachStrengthMeter('signup-password', 'strength-fill', 'strength-label');
+    attachStrengthMeter('reset-new-password', 'reset-strength-fill', 'reset-strength-label');
+>>>>>>> upstream/main
 
     /* ============================================================
        HELPERS
@@ -81,7 +113,12 @@
         document.getElementById(id).style.display = 'none';
     }
     function clearAllErrors(){
+<<<<<<< HEAD
         ['login-error','signup-error','otp-error'].forEach(hideError);
+=======
+        ['login-error','signup-error','otp-error','forgot-error','reset-error'].forEach(hideError);
+    
+>>>>>>> upstream/main
     }
     function setLoading(btn, loading, loadingText){
         const label = btn.querySelector('.btn-text');
@@ -219,9 +256,16 @@
                - Email e OTP pathabe (raw password ar client-e ফেরত pathanor দরকার nei)
                - Note: eivabe korle পরের verify-otp step-e শুধু email + otp pathale hoy,
                  password abar client memory te বহন করা লাগে না (নিচে dekho) */
+<<<<<<< HEAD
             await apiRequest('/api/signup/send-otp', { name, email, password });
 
             pendingSignupEmail = email; // shudhu email mone rakha hocche, password na
+=======
+            const res = await apiRequest('/api/signup/send-otp', { name, email, password });
+
+            pendingSignupEmail = email; // shudhu email mone rakha hocche, password na
+            startResendTimer('signup', res.resend_after || 60, 'otp-resend-btn', 'otp-timer');
+>>>>>>> upstream/main
             document.getElementById('otp-success-msg').style.display = 'block';
             document.getElementById('otp-input').value = '';
             switchScreen('otp-screen');
@@ -272,3 +316,128 @@
         }
     });
     
+<<<<<<< HEAD
+=======
+/* ============================================================
+       OTP RESEND TIMER (reusable for signup + forgot-password)
+       ============================================================ */
+    let resendTimers = {}; // context => intervalId
+
+    function startResendTimer(context, seconds, btnId, timerId){
+        const btn = document.getElementById(btnId);
+        const timerEl = document.getElementById(timerId);
+        let remaining = seconds;
+
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+
+        if (resendTimers[context]) clearInterval(resendTimers[context]);
+
+        const tick = () => {
+            if (remaining <= 0){
+                clearInterval(resendTimers[context]);
+                timerEl.textContent = '';
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+                return;
+            }
+            timerEl.textContent = ` (${remaining}s)`;
+            remaining--;
+        };
+        tick();
+        resendTimers[context] = setInterval(tick, 1000);
+    }
+
+    /* ============================================================
+       FORGOT PASSWORD → SEND OTP
+       ============================================================ */
+    let pendingResetEmail = '';
+
+    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError('forgot-error');
+
+        const email = document.getElementById('forgot-email').value.trim();
+        if (!emailRegex.test(email)){
+            showError('forgot-error', 'Please enter a valid email address.');
+            return;
+        }
+
+        const btn = document.getElementById('forgot-submit-btn');
+        setLoading(btn, true, 'Sending...');
+
+        try {
+            const res = await apiRequest('/api/forgot-password/send-otp', { email });
+            pendingResetEmail = email;
+            switchScreen('reset-screen');
+            startResendTimer('reset', res.resend_after || 60, 'reset-resend-btn', 'reset-timer');
+        } catch (err) {
+            showError('forgot-error', err.message || 'Could not send reset code.');
+        } finally {
+            setLoading(btn, false);
+        }
+    });
+
+    /* ============================================================
+       RESET PASSWORD (OTP + new password)
+       ============================================================ */
+    document.getElementById('reset-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError('reset-error');
+
+        const otp = document.getElementById('reset-otp').value.trim();
+        const newPassword = document.getElementById('reset-new-password').value;
+
+        if (!otp || otp.length !== 6){
+            showError('reset-error', 'Please enter the 6-digit code.');
+            return;
+        }
+        if (newPassword.length < 8){
+            showError('reset-error', 'Password must be at least 8 characters.');
+            return;
+        }
+
+        const btn = document.getElementById('reset-submit-btn');
+        setLoading(btn, true, 'Resetting...');
+
+        try {
+            await apiRequest('/api/forgot-password/reset', {
+                email: pendingResetEmail,
+                otp,
+                new_password: newPassword
+            });
+            switchScreen('login-screen');
+        } catch (err) {
+            showError('reset-error', err.message || 'Could not reset password.');
+        } finally {
+            setLoading(btn, false);
+        }
+    });
+
+    /* ============================================================
+       RESEND BUTTONS
+       ============================================================ */
+    document.getElementById('otp-resend-btn').addEventListener('click', async () => {
+        if (!pendingSignupEmail) return;
+        try {
+            const res = await apiRequest('/api/signup/send-otp', {
+                name: document.getElementById('signup-name').value.trim(),
+                email: pendingSignupEmail,
+                password: document.getElementById('signup-password').value
+            });
+            startResendTimer('signup', res.resend_after || 60, 'otp-resend-btn', 'otp-timer');
+        } catch (err) {
+            showError('otp-error', err.message || 'Could not resend code.');
+        }
+    });
+
+    document.getElementById('reset-resend-btn').addEventListener('click', async () => {
+        if (!pendingResetEmail) return;
+        try {
+            const res = await apiRequest('/api/forgot-password/send-otp', { email: pendingResetEmail });
+            startResendTimer('reset', res.resend_after || 60, 'reset-resend-btn', 'reset-timer');
+        } catch (err) {
+            showError('reset-error', err.message || 'Could not resend code.');
+        }
+    });
+>>>>>>> upstream/main

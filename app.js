@@ -26,6 +26,7 @@ themeToggleBtn.addEventListener("click", () => {
 
 
 /* =========================================================
+<<<<<<< HEAD
    PWA: INSTALL BUTTON + SERVICE WORKER
    The install icon (top of the nav) only appears once the browser
    confirms the app is actually installable. Once installed and
@@ -68,6 +69,8 @@ window.addEventListener("appinstalled", () => {
 
 
 /* =========================================================
+=======
+>>>>>>> upstream/main
    CODE-BLOCK COPY BUTTONS
    ========================================================= */
 const addCodeCopyButtons = (container) => {
@@ -542,6 +545,7 @@ input.addEventListener("keydown", (event) => {
         input.style.height = input.scrollHeight + "px";
     }
 });
+<<<<<<< HEAD
 
 
 /* =========================================================
@@ -848,3 +852,5 @@ if (adminChatText) {
         }
     });
 }
+=======
+>>>>>>> upstream/main

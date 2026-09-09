@@ -13,10 +13,13 @@
 <!-- index.html-er shathe ekoi design system use korar jonno style.css link kora hoyeche -->
 <link rel="stylesheet" href="style.css">
 
+<<<<<<< HEAD
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0b10">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
+=======
+>>>>>>> upstream/main
 <style>
     /* ---------- login/signup page-specific styling (style.css-er variable use kore) ---------- */
     body{ align-items:stretch; }
@@ -180,6 +183,12 @@
             <div class="auth-switch">
                 Don't have an account? <span data-switch="signup-screen">Sign Up</span>
             </div>
+<<<<<<< HEAD
+=======
+            <div class="auth-switch">
+                <span data-switch="forgot-screen">Forgot password?</span>
+            </div>
+>>>>>>> upstream/main
         </div>
     </div>
 
@@ -240,11 +249,87 @@
             </form>
 
             <div class="auth-switch">
+<<<<<<< HEAD
+=======
+                <span id="otp-resend-btn" data-resend="signup">Resend code</span>
+                <span id="otp-timer"></span>
+            </div>
+
+            <div class="auth-switch">
+>>>>>>> upstream/main
                 Wrong email? <span data-switch="signup-screen">Go back</span>
             </div>
         </div>
     </div>
 
+<<<<<<< HEAD
+=======
+    <!-- ===== FORGOT PASSWORD: EMAIL ===== -->
+    <div id="forgot-screen" class="screen">
+        <div class="auth-card">
+            <h2>Reset Password</h2>
+            <p class="subtitle">Enter your email to receive a reset code</p>
+
+            <form class="auth-form" id="forgot-form" autocomplete="off" novalidate>
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope field-icon"></i>
+                    <input type="email" id="forgot-email" class="auth-input" placeholder="Email Address" autocomplete="email" required>
+                </div>
+                <div id="forgot-error" class="auth-error"></div>
+                <button type="submit" id="forgot-submit-btn" class="auth-btn">
+                    <span class="btn-text">Send Reset Code</span>
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                <span data-switch="login-screen">Back to Login</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FORGOT PASSWORD: OTP + NEW PASSWORD ===== -->
+    <div id="reset-screen" class="screen">
+        <div class="auth-card">
+            <h2>Enter Reset Code</h2>
+            <p class="subtitle">Check your email for the code</p>
+
+            <form class="auth-form" id="reset-form" autocomplete="off" novalidate>
+                <div class="input-group">
+                    <i class="fa-solid fa-key field-icon"></i>
+                    <input type="text" id="reset-otp" class="auth-input otp-input" placeholder="------" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input type="password" id="reset-new-password" class="auth-input" placeholder="New Password" autocomplete="new-password" required>
+                    <button type="button" class="toggle-pass" data-target="reset-new-password" aria-label="Show password">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+                <div class="strength-wrap">
+                    <div class="strength-track"><div id="reset-strength-fill" class="strength-fill"></div></div>
+                    <div id="reset-strength-label" class="strength-label">Password strength</div>
+                </div>
+                <div id="reset-error" class="auth-error"></div>
+                <button type="submit" id="reset-submit-btn" class="auth-btn">
+                    <span class="btn-text">Reset Password</span>
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                <span id="reset-resend-btn" data-resend="reset">Resend code</span>
+                <span id="reset-timer"></span>
+            </div>
+            <div class="auth-switch">
+                <span data-switch="login-screen">Back to Login</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+>>>>>>> upstream/main
 </div>
 
 <script src="login.js"></script>
