@@ -592,7 +592,6 @@ const openProfileModal = async () => {
     profileNameInput.value = "";
     profileEmailDisplay.value = localStorage.getItem("beyonder-user") || "";
     setAvatarPreview(null);
-
     const token = localStorage.getItem("beyonder_token");
     try {
         const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
@@ -606,9 +605,7 @@ const openProfileModal = async () => {
         console.error("Could not load profile:", e);
     }
 };
-
 const closeProfileModal = () => { profileModal.hidden = true; };
-
 if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
 if (profileModalClose) profileModalClose.addEventListener("click", closeProfileModal);
 if (profileModal) {
@@ -616,11 +613,9 @@ if (profileModal) {
         if (e.target === profileModal) closeProfileModal();
     });
 }
-
 if (avatarUploadBtn) {
     avatarUploadBtn.addEventListener("click", () => avatarFileInput.click());
 }
-
 if (avatarFileInput) {
     avatarFileInput.addEventListener("change", () => {
         const file = avatarFileInput.files[0];
@@ -629,7 +624,6 @@ if (avatarFileInput) {
             setStatus(profileSaveStatus, "Please choose an image file.", "error");
             return;
         }
-
         // Resize client-side to a small square thumbnail before sending,
         // so the photo stays lightweight in the database.
         const img = new Image();
@@ -652,7 +646,6 @@ if (avatarFileInput) {
         reader.readAsDataURL(file);
     });
 }
-
 if (profileSaveBtn) {
     profileSaveBtn.addEventListener("click", async () => {
         const token = localStorage.getItem("beyonder_token");
@@ -661,13 +654,10 @@ if (profileSaveBtn) {
             setStatus(profileSaveStatus, "Name cannot be empty.", "error");
             return;
         }
-
         profileSaveBtn.disabled = true;
         setStatus(profileSaveStatus, "Saving…");
-
         const payload = { name };
         if (pendingAvatarDataUrl) payload.avatar = pendingAvatarDataUrl;
-
         try {
             const res = await fetch(PROFILE_UPDATE_URL, {
                 method: "POST",
@@ -688,13 +678,11 @@ if (profileSaveBtn) {
         }
     });
 }
-
 if (passwordSaveBtn) {
     passwordSaveBtn.addEventListener("click", async () => {
         const token = localStorage.getItem("beyonder_token");
         const current_password = currentPasswordInput.value;
         const new_password = newPasswordInput.value;
-
         if (!current_password || !new_password) {
             setStatus(passwordSaveStatus, "Please fill in both password fields.", "error");
             return;
@@ -703,10 +691,8 @@ if (passwordSaveBtn) {
             setStatus(passwordSaveStatus, "New password must be at least 8 characters.", "error");
             return;
         }
-
         passwordSaveBtn.disabled = true;
         setStatus(passwordSaveStatus, "Updating…");
-
         try {
             const res = await fetch(PROFILE_PASSWORD_URL, {
                 method: "POST",
@@ -728,26 +714,21 @@ if (passwordSaveBtn) {
         }
     });
 }
-
-
 /* =========================================================
    CHAT WITH ADMIN MODAL — a private line to a human admin,
    completely separate from the AI conversation above.
    ========================================================= */
 const ADMIN_CHAT_SEND_URL = `${BACKEND_BASE}/api/admin-chat/send`;
 const ADMIN_CHAT_MESSAGES_URL = `${BACKEND_BASE}/api/admin-chat/messages`;
-
 const adminChatModal = document.getElementById("admin-chat-modal");
 const adminChatBtn = document.getElementById("admin-chat-btn");
 const adminChatModalClose = document.getElementById("admin-chat-modal-close");
 const adminChatMessagesEl = document.getElementById("admin-chat-messages");
 const adminChatText = document.getElementById("admin-chat-text");
 const adminChatSendBtn = document.getElementById("admin-chat-send");
-
 let adminChatLastId = 0;
 let adminChatPollTimer = null;
 let adminChatAllMessages = [];
-
 const renderAdminChatMessages = () => {
     if (!adminChatAllMessages.length) {
         adminChatMessagesEl.innerHTML = `<div class="admin-chat-empty">No messages yet — say hello 👋</div>`;
@@ -763,46 +744,43 @@ const renderAdminChatMessages = () => {
     }).join("");
     adminChatMessagesEl.scrollTop = adminChatMessagesEl.scrollHeight;
 };
-
 function escapeAdminChatHtml(str) {
     const div = document.createElement("div");
     div.textContent = str ?? "";
     return div.innerHTML;
 }
-
 const pollAdminChat = async () => {
     const token = localStorage.getItem("beyonder_token");
     if (!token) return;
     try {
-        const res = await fetch(`${ADMIN_CHAT_MESSAGES_URL}?since_id=0`, {
+        const res = await fetch(`${ADMIN_CHAT_MESSAGES_URL}?since_id=${adminChatLastId}`, {
             headers: { "Authorization": token }
         });
         if (!res.ok) return;
         const data = await res.json();
-        if (data.success) {
-            adminChatAllMessages = data.messages;
+        if (data.success && data.messages && data.messages.length) {
+            adminChatAllMessages = adminChatAllMessages.concat(data.messages);
+            adminChatLastId = data.messages[data.messages.length - 1].id;
             renderAdminChatMessages();
         }
     } catch (e) {
         console.error("Could not poll admin chat:", e);
     }
 };
-
 const openAdminChatModal = () => {
     adminChatModal.hidden = false;
+    // Fresh history each time the modal is opened
+    adminChatLastId = 0;
+    adminChatAllMessages = [];
     pollAdminChat();
     if (adminChatPollTimer) clearInterval(adminChatPollTimer);
     adminChatPollTimer = setInterval(pollAdminChat, 4000);
 };
-
-
 const closeAdminChatModal = () => {
     if (adminChatModal) adminChatModal.hidden = true;
     if (adminChatPollTimer) clearInterval(adminChatPollTimer);
 };
-
 if (adminChatBtn) adminChatBtn.addEventListener("click", openAdminChatModal);
-
 // Reliable click handler for closing via backdrop or any close button/icon
 if (adminChatModal) {
     adminChatModal.addEventListener("click", (e) => {
@@ -816,9 +794,6 @@ if (adminChatModal) {
         }
     });
 }
-
-
-
 const sendAdminChatMessage = async () => {
     const token = localStorage.getItem("beyonder_token");
     const message = adminChatText.value.trim();
@@ -827,10 +802,6 @@ const sendAdminChatMessage = async () => {
     adminChatText.value = "";
     adminChatText.style.height = "auto";
     adminChatSendBtn.disabled = true;
-
-    // Optimistic append so it feels instant
-    adminChatAllMessages.push({ sender: "user", message, timestamp: Date.now() / 1000 });
-    renderAdminChatMessages();
 
     try {
         await fetch(ADMIN_CHAT_SEND_URL, {
@@ -858,4 +829,4 @@ if (adminChatText) {
             sendAdminChatMessage();
         }
     });
-}
+                              }
