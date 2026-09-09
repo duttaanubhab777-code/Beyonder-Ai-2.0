@@ -796,20 +796,28 @@ const openAdminChatModal = () => {
 };
 
 
-const adminChatModalClose = document.getElementById("admin-chat-modal-close") || adminChatModal.querySelector(".fa-xmark").parentElement;
-
 const closeAdminChatModal = () => {
-    adminChatModal.hidden = true;
+    if (adminChatModal) adminChatModal.hidden = true;
     if (adminChatPollTimer) clearInterval(adminChatPollTimer);
 };
 
 if (adminChatBtn) adminChatBtn.addEventListener("click", openAdminChatModal);
-if (adminChatModalClose) adminChatModalClose.addEventListener("click", closeAdminChatModal);
+
+// Reliable click handler for closing via backdrop or any close button/icon
 if (adminChatModal) {
     adminChatModal.addEventListener("click", (e) => {
-        if (e.target === adminChatModal) closeAdminChatModal();
+        if (
+            e.target === adminChatModal || 
+            e.target.closest("#admin-chat-modal-close") || 
+            e.target.closest(".fa-xmark") || 
+            e.target.closest(".close-btn")
+        ) {
+            closeAdminChatModal();
+        }
     });
 }
+
+
 
 const sendAdminChatMessage = async () => {
     const token = localStorage.getItem("beyonder_token");
