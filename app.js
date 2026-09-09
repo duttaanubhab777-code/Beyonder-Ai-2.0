@@ -414,9 +414,16 @@ const pollAdminMessages = async () => {
 (async () => {
     const ok = await checkAuth();
     if (ok) {
+        try {
+            const token = localStorage.getItem("beyonder_token");
+            const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
+            const data = await res.json();
+            if (data.success) setNavAvatar(data.avatar || null, data.name || "");
+        } catch (e) {}
+
         pollAdminMessages();
         setInterval(pollAdminMessages, ADMIN_MESSAGE_POLL_MS);
-        document.body.classList.remove("checking-auth"); // <--- ঠিক এই লাইনটি এখানে জুড়ে দিন
+        document.body.classList.remove("checking-auth");
         loadHistory();
     }
 })();
@@ -550,7 +557,32 @@ input.addEventListener("keydown", (event) => {
 const PROFILE_API_URL = `${BACKEND_BASE}/api/profile`;
 const PROFILE_UPDATE_URL = `${BACKEND_BASE}/api/profile/update`;
 const PROFILE_PASSWORD_URL = `${BACKEND_BASE}/api/profile/change-password`;
+const AVATAR_COLORS = [
+    '#6b5cd6', '#e0568b', '#2a9d8f', '#e76f51', '#457b9d', '#f4a261',
+    '#d62828', '#06a77d', '#8338ec', '#fb8500', '#3a86ff', '#c9184a',
+    '#588157', '#bc6c25', '#219ebc', '#9d4edd', '#ef476f', '#118ab2',
+    '#ff6392', '#5f6caf'
+];
 
+const colorForName = (name) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+const navAvatar = document.getElementById("nav-avatar");
+
+const setNavAvatar = (dataUrlOrNull, name) => {
+    if (!navAvatar) return;
+    if (dataUrlOrNull) {
+        navAvatar.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
+        navAvatar.style.background = "transparent";
+    } else {
+        const initial = (name || "?").trim().charAt(0).toUpperCase();
+        navAvatar.innerHTML = initial;
+        navAvatar.style.background = colorForName(name || "?");
+    }
+};
 const profileModal = document.getElementById("profile-modal");
 const profileBtn = document.getElementById("profile-btn");
 const profileModalClose = document.getElementById("profile-modal-close");
@@ -600,6 +632,7 @@ const openProfileModal = async () => {
             profileNameInput.value = data.name || "";
             profileEmailDisplay.value = data.email || "";
             setAvatarPreview(data.avatar || null);
+           setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
         console.error("Could not load profile:", e);
@@ -665,10 +698,11 @@ if (profileSaveBtn) {
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (data.success) {
-                setStatus(profileSaveStatus, "Saved!", "success");
-                pendingAvatarDataUrl = null;
-            } else {
+          if (data.success) {
+    setStatus(profileSaveStatus, "Saved!", "success");
+    setNavAvatar(pendingAvatarDataUrl || avatarPreview.querySelector("img")?.src || null, name);
+    pendingAvatarDataUrl = null;
+          }   else {
                 setStatus(profileSaveStatus, data.message || "Could not save.", "error");
             }
         } catch (e) {
