@@ -998,28 +998,17 @@ color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পে�
     resize:none;
     max-height:100px;
 }
-
-@media (max-width: 480px) {
-nav {
-padding: 12px 14px;
-}
+@media (max-width: 480px){
 .logo-wrapper h1 {
-font-size: 1.05rem;
+font-size: 0.95rem; /* ফন্ট সাইজ সামান্য ছোট করা হলো যাতে Beyonder AI এক লাইনেই ধরে যায় /
 }
 .logo-wrapper h1 span {
-display: none; /* ছোট স্ক্রিনে 'AI' লেখাটি হাইড করে জায়গা বাঁচানোর জন্য */
+display: inline !important; / 'AI' লেখাটি আবার দৃশ্যমান করা হলো */
 }
-.logo-circle {
+.icon-btn{
 width: 32px;
 height: 32px;
-}
-#logo i {
-font-size: 14px;
-}
-.icon-btn {
-width: 34px;
-height: 34px;
-font-size: 13px;
+font-size: 12.5px;
 }
 }
 
