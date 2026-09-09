@@ -782,13 +782,19 @@ body.checking-auth .chat-input-area {
     color:#ffffff;
     border-radius:14px 14px 4px 14px;
 }
-
-.admin-chat-msg.from-admin{
-    align-self:flex-start;
-    background:var(--bg-panel);
-    border:1px solid var(--border-subtle);
-    color:var(--text-primary);
-    border-radius:4px 14px 14px 14px;
+/* =========================================
+অ্যাডমিনের মেসেজ - ম্যাজেন্টা/পিঙ্ক গ্রেডিয়েন্ট
+========================================= */
+.admin-chat-msg.from-admin {
+align-self: flex-start;
+background: linear-gradient(135deg, #ec4899, #9333ea); / পিঙ্ক থেকে বেগুনি গ্রেডিয়েন্ট /
+border: none;
+color: #ffffff;
+border-radius: 4px 14px 14px 14px;
+box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25); / হালকা পিঙ্ক শ্যাডো */
+}
+.admin-chat-msg.from-admin .meta {
+color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
 }
 
 /* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
