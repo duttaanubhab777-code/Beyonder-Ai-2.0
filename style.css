@@ -786,6 +786,20 @@ body.checking-auth .chat-input-area {
     color:var(--accent-2);
 }
 
+.nav-avatar{
+    width:100%; height:100%;
+    border-radius:50%;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px;
+    font-weight:600;
+    color:#fff;
+}
+.nav-avatar img{
+    width:100%; height:100%;
+    object-fit:cover;
+}
+
 .avatar-preview img{
     width:100%; height:100%;
     object-fit:cover;
