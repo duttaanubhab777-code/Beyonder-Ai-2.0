@@ -636,11 +636,15 @@ const passwordSaveStatus = document.getElementById("password-save-status");
 
 let pendingAvatarDataUrl = null; // set only if the user picked a new photo this session
 
-const setAvatarPreview = (dataUrlOrNull) => {
+const setAvatarPreview = (dataUrlOrNull, name) => {
     if (dataUrlOrNull) {
         avatarPreview.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
+        avatarPreview.style.background = "transparent";
     } else {
-        avatarPreview.innerHTML = `<i class="fa-solid fa-user"></i>`;
+        const initial = (name || "?").trim().charAt(0).toUpperCase();
+        avatarPreview.innerHTML = initial;
+        avatarPreview.style.background = colorForName(name || "?");
+        avatarPreview.style.color = "#fff";
     }
 };
 
@@ -667,7 +671,7 @@ const openProfileModal = async () => {
         if (data.success) {
             profileNameInput.value = data.name || "";
             profileEmailDisplay.value = data.email || "";
-            setAvatarPreview(data.avatar || null);
+            setAvatarPreview(data.avatar || null, data.name || "");
            setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
@@ -708,7 +712,7 @@ if (avatarFileInput) {
                 const w = img.width * scale, h = img.height * scale;
                 ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
                 pendingAvatarDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-                setAvatarPreview(pendingAvatarDataUrl);
+setAvatarPreview(pendingAvatarDataUrl, profileNameInput.value);
             };
             img.src = e.target.result;
         };
