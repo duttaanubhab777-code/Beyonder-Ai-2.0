@@ -54,7 +54,8 @@ body{
     background-color:var(--bg-base);
     color:var(--text-primary);
     font-family:'Inter', system-ui, sans-serif;
-    height:100dvh;
+    /* height:100dvh; */
+ height: var(--app-height, 100dvh);
     display:flex;
     flex-direction:column;
     padding:14px;
