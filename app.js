@@ -479,40 +479,24 @@ const CHAT_HISTORY_URL = `${BACKEND_BASE}/api/chat-history`;
 
 const loadHistory = async () => {
     chat.innerHTML = "";
-
-    // Source of truth is now our own database (via /api/chat-history), not
-    // just this one browser's localStorage — that's what lets a user open
-    // Beyonder AI on a different device, or after clearing their browser
-    // data, and still have the AI aware of their earlier conversations.
     let serverHistory = null;
     try {
         const token = localStorage.getItem("beyonder_token");
-        const res = await fetch(CHAT_HISTORY_URL, { headers: { "Authorization": token } });
+        // নির্দিষ্ট সেশন আইডির হিস্ট্রি আনবে
+        const res = await fetch(`${CHAT_HISTORY_URL}?session_id=${currentSessionId}`, { headers: { "Authorization": token } });
         const data = await res.json();
         if (data.success) serverHistory = data.history;
     } catch (e) {
-        console.warn("Could not load chat history from server, falling back to local cache:", e);
+        console.warn("Could not load chat history:", e);
     }
 
-    let saved = serverHistory;
-    if (!saved) {
-        // Offline / server unreachable — fall back to whatever was cached
-        // locally last time, so the app still works without a connection.
-        try {
-            saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        } catch (e) {
-            saved = null;
-        }
-    }
-
-    if (saved && Array.isArray(saved) && saved.length > 0) {
-        chatHistory = saved;
+    if (serverHistory && Array.isArray(serverHistory) && serverHistory.length > 0) {
+        chatHistory = serverHistory;
         chatHistory.forEach((turn) => {
             const text = turn.parts[0].text;
             appendMessage(text, turn.role === "user" ? "outgoing" : "incoming", { animate: false });
         });
         chat.scrollTop = chat.scrollHeight;
-        saveHistory(); // keep the local cache mirrored, for the offline-fallback case above
     } else {
         chatHistory = [];
         showWelcomeHero();
@@ -520,16 +504,69 @@ const loadHistory = async () => {
 };
 
 const startNewChat = () => {
-    // Product decision: "New Chat" only gives a clean-looking chat window —
-    // it does NOT erase Beyonder AI's memory of this user's past
-    // conversations. chatHistory (what actually gets sent to the AI) is
-    // deliberately left untouched here, so the assistant still has full
-    // context pulled from our database even in a fresh-looking thread.
+    // নতুন চ্যাটের জন্য নতুন আইডি তৈরি করবে
+    currentSessionId = generateSessionId();
+    localStorage.setItem("beyonder-current-session", currentSessionId);
+    
+    chatHistory = [];
     chat.innerHTML = "";
     showWelcomeHero();
+    
+    // সাইডবার খোলা থাকলে বন্ধ করে দেবে
+    if(typeof closeSidebar === 'function') closeSidebar();
+    loadSidebarSessions();
+};
+if (newChatBtn) newChatBtn.addEventListener("click", startNewChat);
+
+
+/* =========================================================
+   SIDEBAR CHAT SESSIONS (NEW)
+   ========================================================= */
+const loadSidebarSessions = async () => {
+    const sidebarList = document.getElementById("sidebar-chat-list");
+    if (!sidebarList) return;
+    
+    const token = localStorage.getItem("beyonder_token");
+    if(!token) return;
+
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/chat-sessions`, { headers: { "Authorization": token } });
+        const data = await res.json();
+        
+        if (data.success && data.sessions) {
+            sidebarList.innerHTML = "";
+            data.sessions.forEach(session => {
+                const btn = document.createElement("button");
+                btn.className = "sidebar-item chat-session-btn";
+                // বর্তমান চ্যাটটি হাইলাইট করবে
+                if(session.session_id === currentSessionId) {
+                    btn.style.background = "var(--glass-bg)";
+                    btn.style.fontWeight = "bold";
+                }
+                
+                // টাইটেল (সর্বোচ্চ ২৫ অক্ষর)
+                const shortTitle = session.title.length > 25 ? session.title.substring(0, 25) + "..." : session.title;
+                
+                btn.innerHTML = `<i class="fa-regular fa-message"></i> <span>${shortTitle}</span>`;
+                btn.addEventListener("click", () => {
+                    currentSessionId = session.session_id;
+                    localStorage.setItem("beyonder-current-session", currentSessionId);
+                    loadHistory();
+                    loadSidebarSessions(); // হাইলাইট আপডেট করতে
+                    if(typeof closeSidebar === 'function') closeSidebar();
+                });
+                sidebarList.appendChild(btn);
+            });
+        }
+    } catch (e) {
+        console.error("Could not load chat sessions:", e);
+    }
 };
 
-newChatBtn.addEventListener("click", startNewChat);
+
+
+
+
 
 /* =========================================================
    ADMIN MESSAGE POLLING (new)
