@@ -93,14 +93,15 @@ if (historyBtn) {
 }
 
 
-    // Clicking any option automatically closes the menu
-document.querySelectorAll('.sidebar-item').forEach(item => {
+   document.querySelectorAll('.sidebar-item').forEach(item => {
     item.addEventListener('click', () => {
-        if(item.id !== 'theme-toggle-btn') {
+        // Theme এবং History বাটনে ক্লিক করলে সাইডবার বন্ধ হবে না
+        if(item.id !== 'theme-toggle-btn' && item.id !== 'history-btn') {
             closeSidebar();
         }
     });
 });
+
 
 
 
@@ -533,6 +534,9 @@ const startNewChat = () => {
 if (newChatBtn) newChatBtn.addEventListener("click", startNewChat);
 
 
+
+
+
 /* =========================================================
    SIDEBAR CHAT SESSIONS (NEW)
    ========================================================= */
@@ -540,42 +544,50 @@ const loadSidebarSessions = async () => {
     const sidebarList = document.getElementById("sidebar-chat-list");
     if (!sidebarList) return;
     
+    // লোডিং মেসেজ দেখাবে
+    sidebarList.innerHTML = `<div style="padding:15px; color:#888; font-size:14px; text-align:center;">Loading chats...</div>`;
+    
     const token = localStorage.getItem("beyonder_token");
     if(!token) return;
 
     try {
         const res = await fetch(`${BACKEND_BASE}/api/chat-sessions`, { headers: { "Authorization": token } });
+        
+        if (!res.ok) throw new Error("Backend not ready yet");
+        
         const data = await res.json();
         
-        if (data.success && data.sessions) {
+        if (data.success && data.sessions && data.sessions.length > 0) {
             sidebarList.innerHTML = "";
             data.sessions.forEach(session => {
                 const btn = document.createElement("button");
                 btn.className = "sidebar-item chat-session-btn";
-                // বর্তমান চ্যাটটি হাইলাইট করবে
                 if(session.session_id === currentSessionId) {
                     btn.style.background = "var(--glass-bg)";
                     btn.style.fontWeight = "bold";
                 }
-                
-                // টাইটেল (সর্বোচ্চ ২৫ অক্ষর)
                 const shortTitle = session.title.length > 25 ? session.title.substring(0, 25) + "..." : session.title;
-                
                 btn.innerHTML = `<i class="fa-regular fa-message"></i> <span>${shortTitle}</span>`;
                 btn.addEventListener("click", () => {
                     currentSessionId = session.session_id;
                     localStorage.setItem("beyonder-current-session", currentSessionId);
                     loadHistory();
-                    loadSidebarSessions(); // হাইলাইট আপডেট করতে
+                    loadSidebarSessions(); 
                     if(typeof closeSidebar === 'function') closeSidebar();
                 });
                 sidebarList.appendChild(btn);
             });
+        } else {
+            // যদি কোনো চ্যাট না থাকে
+            sidebarList.innerHTML = `<div style="padding:15px; color:#888; font-size:14px; text-align:center;">No past chats found.</div>`;
         }
     } catch (e) {
         console.error("Could not load chat sessions:", e);
+        // ব্যাকএন্ড আপডেট না থাকলে এই এরর মেসেজটি দেখাবে
+        sidebarList.innerHTML = `<div style="padding:15px; color:#ff6b6b; font-size:14px; text-align:center;">Backend needs update to show history.</div>`;
     }
 };
+
 
 
 
