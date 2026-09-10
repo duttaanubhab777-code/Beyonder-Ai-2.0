@@ -815,13 +815,20 @@ const passwordSaveStatus = document.getElementById("password-save-status");
 
 let pendingAvatarDataUrl = null; // set only if the user picked a new photo this session
 
-const setAvatarPreview = (dataUrlOrNull) => {
+const setAvatarPreview = (dataUrlOrNull, name) => {
     if (dataUrlOrNull) {
         avatarPreview.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
+        avatarPreview.style.background = "transparent";
+    } else if (name) {
+        const initial = name.trim().charAt(0).toUpperCase();
+        avatarPreview.innerHTML = initial;
+        avatarPreview.style.background = colorForName(name);
     } else {
         avatarPreview.innerHTML = `<i class="fa-solid fa-user"></i>`;
+        avatarPreview.style.background = ""; 
     }
 };
+
 
 const setStatus = (el, message, kind) => {
     el.textContent = message || "";
@@ -848,7 +855,7 @@ const openProfileModal = async () => {
             profileNameInput.value = data.name || "";
             if (profileAddressInput) profileAddressInput.value = data.address || "";
             profileEmailDisplay.value = data.email || "";
-            setAvatarPreview(data.avatar || null);
+            setAvatarPreview(data.avatar || null, data.name || "");
            setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
