@@ -1,6 +1,17 @@
 /* =========================================================
    THEME (dark / light) — persisted + follows system default
    ========================================================= */
+
+
+// app.js-এ সবার আগে, বা একটা আলাদা <script>-এ (login.js-এও একই কোড লাগবে যদি ওই পেজেও 100dvh থাকে)
+function setAppHeight() {
+    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+
+
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const themeIcon = themeToggleBtn.querySelector("i");
 
