@@ -1,6 +1,17 @@
 /* =========================================================
    THEME (dark / light) — persisted + follows system default
    ========================================================= */
+
+
+// app.js-এ সবার আগে, বা একটা আলাদা <script>-এ (login.js-এও একই কোড লাগবে যদি ওই পেজেও 100dvh থাকে)
+function setAppHeight() {
+    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+
+
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const themeIcon = themeToggleBtn.querySelector("i");
 
@@ -676,11 +687,15 @@ const passwordSaveStatus = document.getElementById("password-save-status");
 
 let pendingAvatarDataUrl = null; // set only if the user picked a new photo this session
 
-const setAvatarPreview = (dataUrlOrNull) => {
+const setAvatarPreview = (dataUrlOrNull, name) => {
     if (dataUrlOrNull) {
         avatarPreview.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
+        avatarPreview.style.background = "transparent";
     } else {
-        avatarPreview.innerHTML = `<i class="fa-solid fa-user"></i>`;
+        const initial = (name || "?").trim().charAt(0).toUpperCase();
+        avatarPreview.innerHTML = initial;
+        avatarPreview.style.background = colorForName(name || "?");
+        avatarPreview.style.color = "#fff";
     }
 };
 
@@ -748,7 +763,7 @@ if (avatarFileInput) {
                 const w = img.width * scale, h = img.height * scale;
                 ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
                 pendingAvatarDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-                setAvatarPreview(pendingAvatarDataUrl);
+setAvatarPreview(pendingAvatarDataUrl, profileNameInput.value);
             };
             img.src = e.target.result;
         };

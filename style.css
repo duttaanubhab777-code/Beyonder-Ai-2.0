@@ -54,7 +54,8 @@ body{
     background-color:var(--bg-base);
     color:var(--text-primary);
     font-family:'Inter', system-ui, sans-serif;
-    height:100dvh;
+    /* height:100dvh; */
+ height: var(--app-height, 100dvh);
     display:flex;
     flex-direction:column;
     padding:14px;
@@ -1047,6 +1048,11 @@ box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25); /* হালকা পিঙ্
 .admin-chat-msg.from-admin .meta {
 color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
 }
+.admin-chat-msg.from-admin .meta {
+color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
+}
+
+/* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
 
 /* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
 
