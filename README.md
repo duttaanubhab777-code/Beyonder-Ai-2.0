@@ -6,10 +6,10 @@ This document explains what every function in the frontend (`login.js`, `app.js`
 
 ## Architecture overview
 
-- **Frontend**: static files (`index.html`, `login.html`, `app.js`, `login.js`, `style.css`) hosted on **GitHub Pages**. Also installable as a PWA (`manifest.json`, `sw.js`).
-- **Backend**: Flask app on **PythonAnywhere** (`app.py`), exposing JSON API endpoints under `/api/...`. All calls from `app.js` go through one `BACKEND_BASE` constant instead of hardcoding the URL in multiple places.
+- **Frontend**: static files (`index.html`, `login.html`, `app.js`, `login.js`, `style.css`) hosted on **GitHub Pages**.
+- **Backend**: Flask app on **PythonAnywhere** (`app.py`), exposing JSON API endpoints under `/api/...`.
 - **Auth model**: token-based. On login/signup, the server returns a random token (`uuid4`) that the frontend stores in `localStorage` under the key `beyonder_token`, then sends back on every request as an `Authorization` header. (Not cookies — this avoids third-party cookie blocking issues that happen when frontend and backend are on different domains.)
-- **AI replies**: come from a separate Vercel API (`https://beyonder-api.vercel.app/api/chat`), not from the Python backend. The Python backend's job is accounts, login, chat-history logging, profile/avatar storage, and the admin messaging features below.
+- **AI replies**: come from a separate Vercel API (`https://beyonder-api.vercel.app/api/chat`), not from the Python backend. The Python backend's job is only accounts, login, and saving chat history.
 
 ---
 
@@ -79,18 +79,8 @@ Two click handlers — one for the signup-OTP screen, one for the reset-password
 ### Theme toggle
 Same mechanism as `login.js`, kept in sync via the same `localStorage` key so the theme choice carries over between the login page and the chat page.
 
-### Sidebar menu
-```js
-openSidebar() / closeSidebar()
-```
-Slides in a hamburger-style side menu (overlay + panel) that holds the theme toggle, new-chat, profile, admin-chat, install, and logout entries. `openSidebar()` un-hides the overlay then adds the `active`/`open` classes a tick later so the CSS transition actually plays. `closeSidebar()` reverses it and re-hides the overlay after the transition finishes. Clicking any sidebar item (other than the theme toggle) auto-closes the menu.
-
-### PWA install + service worker
-- On page load, registers `sw.js` as the service worker (silently warns to console if that fails) so the app shell can be cached for offline use and "Add to Home Screen" installs.
-- Listens for the browser's `beforeinstallprompt` event, stashes it, and reveals an install button in the sidebar; clicking that button replays the stashed prompt and hides the button once the user answers (or once `appinstalled` fires). Installing doesn't change how login works — the same `beyonder_token` in `localStorage` keeps the user signed in whether they're in the browser or the installed app.
-
 ### `checkAuth()`
-Runs immediately when the chat page loads (see the self-invoking block near the bottom). It reads the token from `localStorage`; if there isn't one, it redirects straight to `login.html` without even contacting the server. If there is one, it calls `GET /api/me` with the token in the `Authorization` header. If the server says the token isn't valid (`logged_in: false`), it redirects to login; otherwise it removes the `checking-auth` CSS class from `<body>` (which is what reveals the chat UI — until this point the chat area and input box are hidden via CSS, so a logged-out visitor never sees a flash of the chat interface before being redirected). On success it also loads the saved profile avatar into the nav bar and starts admin-message polling before loading chat history.
+Runs immediately when the chat page loads (see the self-invoking block near the bottom). It reads the token from `localStorage`; if there isn't one, it redirects straight to `login.html` without even contacting the server. If there is one, it calls `GET /api/me` with the token in the `Authorization` header. If the server says the token isn't valid (`logged_in: false`), it redirects to login; otherwise it removes the `checking-auth` CSS class from `<body>` (which is what reveals the chat UI — until this point the chat area and input box are hidden via CSS, so a logged-out visitor never sees a flash of the chat interface before being redirected).
 
 ### Chat rendering
 - `appendMessage(text, type, {animate})` — adds a message bubble to the chat area. Incoming (AI) messages get a "logo" avatar and are rendered through `marked.js` (Markdown → HTML) plus KaTeX (for `$...$` math); outgoing (user) messages are shown as plain text.
@@ -112,39 +102,15 @@ The core send/receive flow:
 5. `finally` always re-enables the input box and refocuses it.
 
 ### `saveToFriendDatabase(userText, aiText)`
-Sends the completed exchange to `POST /api/save-chat` on the Python backend, with the token in the `Authorization` header (this is one of several endpoints on the backend that require being logged in, enforced by an `@api_login_required` decorator in `app.py`). This is fire-and-forget: if it fails, it's only logged to the console, since a chat-history-saving failure shouldn't interrupt the user's conversation.
-
-### Admin → user message push (`pollAdminMessages`)
-Lets an admin drop a message directly into a specific user's chat from the admin dashboard, without the user having asked anything. Every 30 seconds (`ADMIN_MESSAGE_POLL_MS`), `pollAdminMessages()` calls `GET /api/check-messages?since_id=...` (the last-seen ID is remembered in `localStorage` under `beyonder-last-admin-msg-id`). Any new messages are appended to `chatHistory` as normal `"model"` turns and rendered with `appendMessage()`, so they look exactly like a regular AI reply — there's no separate UI for this, it just quietly injects into the same conversation.
+Sends the completed exchange to `POST /api/save-chat` on the Python backend, with the token in the `Authorization` header (this is the one endpoint on the backend that requires being logged in — enforced by the `@api_login_required` decorator in `app.py`). This is fire-and-forget: if it fails, it's only logged to the console, since a chat-history-saving failure shouldn't interrupt the user's conversation.
 
 ### `logoutUser()`
-Clears the chat history, the auth token, and the admin-message watermark from `localStorage`, tells the backend to invalidate the token (`POST /api/logout`, which deletes it from the server's `active_tokens` dict), then redirects to `login.html` regardless of whether that server call succeeded (`.finally`) — so a logout always works from the user's point of view even if the network request fails.
+Clears the chat history and the token from `localStorage`, tells the backend to invalidate the token (`POST /api/logout`, which deletes it from the server's `active_tokens` dict), then redirects to `login.html` regardless of whether that server call succeeded (`.finally`) — so a logout always works from the user's point of view even if the network request fails.
 
 ### Composer
 - `setComposerDisabled(disabled)` — greys out the send button and textarea while a reply is being fetched, so a user can't send a second message mid-reply.
 - `handleSend()` — reads the textarea, appends the user's bubble, clears/resets the textarea height, disables the composer, shows the typing indicator, and kicks off `getGeminiResponse()`.
 - The `Enter` key is intercepted to insert a newline into the textarea instead of submitting (there's no explicit "send on Enter" — sending only happens via the send button), and the textarea auto-grows as text wraps to new lines.
-
-### Profile settings modal
-A modal (opened via `openProfileModal()`, closed via `closeProfileModal()`) for viewing/editing the account's display name and avatar, and changing the password.
-- On open, it loads the current name/email/avatar from `GET /api/profile` and populates the form; email is shown read-only.
-- **Avatar upload**: clicking the upload button opens a file picker; the chosen image is drawn onto a hidden `<canvas>`, cropped/scaled to a 256×256 square, and re-encoded as a JPEG data URL (`pendingAvatarDataUrl`) — this keeps stored photos small — before being shown in the preview.
-- **Save profile** (`profileSaveBtn`): sends the name (and the new avatar data URL, if one was picked) to `POST /api/profile/update`. On success, updates the nav-bar avatar immediately via `setNavAvatar()`.
-- **Change password** (`passwordSaveBtn`): validates both fields are filled and the new password is ≥ 8 characters, then sends `current_password`/`new_password` to `POST /api/profile/change-password`.
-- `setNavAvatar(dataUrlOrNull, name)` — draws the small avatar circle in the top nav: either the user's uploaded photo, or (if none) a colored circle with their first initial. `colorForName(name)` deterministically picks one of a fixed palette of 20 colors from a hash of the name, so the same name always gets the same color.
-- `setStatus(el, message, kind)` — shared helper for showing a success/error line under the profile or password forms.
-
-### Chat-with-admin modal
-A separate, two-way private conversation between the logged-in user and a human admin — entirely distinct from the AI chat above (its own modal, own message list, own send box).
-- `openAdminChatModal()` — resets the local message list, does an immediate poll, then polls `GET /api/admin-chat/messages?since_id=...` every 4 seconds (`adminChatPollTimer`) while the modal is open; `closeAdminChatModal()` stops the polling.
-- `renderAdminChatMessages()` — renders each message bubble labeled "You" or "Admin" with a timestamp, escaping message text via `escapeAdminChatHtml()` to avoid HTML injection.
-- `sendAdminChatMessage()` — posts the typed message to `POST /api/admin-chat/send`, then immediately re-polls so the sent message shows up right away. Wired to both the send button and pressing Enter (without Shift) in the textarea, which also auto-grows as you type.
-
----
-
-## sw.js — Service worker (PWA offline support)
-
-Caches only the static "app shell" (`index.html`, `login.html`, `style.css`, `app.js`, `login.js`, `manifest.json`, icons) under a versioned cache name, so an installed copy of the app opens instantly and the UI itself works offline. Any request that looks like an API call (path contains `/api/` or `/admin/`) or is cross-origin is always sent straight to the network — the service worker deliberately never caches login, chat, profile, or admin traffic, so nobody sees stale auth or conversation data. Uses a stale-while-revalidate strategy for shell files: serve the cached copy instantly, then quietly refetch and update the cache in the background.
 
 ---
 
@@ -159,13 +125,7 @@ Caches only the static "app shell" (`index.html`, `login.html`, `style.css`, `ap
 | `POST /api/forgot-password/reset` | Confirms the reset code, sets a new password |
 | `GET /api/me` | Given a token, confirms whether it's still valid |
 | `POST /api/logout` | Invalidates a token server-side |
-| `POST /api/save-chat` | Logs one AI-chat exchange to the database (requires a valid token) |
-| `GET /api/check-messages` | Polled by the chat page; returns any new messages an admin pushed directly into this user's chat |
-| `GET /api/profile` | Returns the logged-in user's name, email, and avatar |
-| `POST /api/profile/update` | Updates the display name and/or avatar image |
-| `POST /api/profile/change-password` | Changes the account password (requires current password) |
-| `GET /api/admin-chat/messages` | Polled by the admin-chat modal; returns new messages in the user↔admin thread |
-| `POST /api/admin-chat/send` | Sends a message from the user into the admin-chat thread |
+| `POST /api/save-chat` | Logs one exchange to the database (requires a valid token) |
 | `GET /admin`, `POST /admin/login`, `POST /admin/delete-user` | Separate, session-cookie-based admin dashboard — unrelated to the token system above |
 
 Tokens and pending OTPs are stored **in memory** (plain Python dicts), not in the database — meaning a server restart on PythonAnywhere logs everyone out and clears any in-progress signups/resets. This is a known, accepted limitation for a small project; a production app would move these into the database or a cache like Redis.

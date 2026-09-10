@@ -73,22 +73,18 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
 
 
 /* =========================================================
-   PWA: INSTALL BUTTON + SERVICE WORKER
+   PWA: INSTALL BUTTON
    The install icon (top of the nav) only appears once the browser
    confirms the app is actually installable. Once installed and
    opened as a standalone app, login still works exactly the same
    way as in the browser: the auth token in localStorage is what
    keeps the user logged in, so there's nothing extra to "carry
    over" — installing just gives it its own icon/window.
-   ========================================================= */
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch((e) => {
-            console.warn("Service worker registration failed:", e);
-        });
-    });
-}
 
+   Service worker registration + the "new version available" popup
+   both live in pwa-update.js (shared with login.html) — see that
+   file for details.
+   ========================================================= */
 const installBtn = document.getElementById("install-btn");
 let deferredInstallPrompt = null;
 
@@ -231,6 +227,44 @@ const chat = document.getElementById("chat-area");
 const WELCOME_MESSAGE = "Hello, I am Beyonder. How can I help you?";
 const STORAGE_KEY = "beyonder-chat-history";
 
+/* =========================================================
+   WELCOME HERO — shown instead of a single chat bubble when
+   there's no conversation yet. Tapping a chip fills the composer
+   and sends it right away, giving a new visitor something inviting
+   to try instead of a blank input box.
+   ========================================================= */
+const SUGGESTION_CHIPS = [
+    { icon: "fa-lightbulb", text: "একটা কঠিন বিষয় সহজ ভাষায় বুঝিয়ে দাও" },
+    { icon: "fa-code", text: "আমার কোডের bug খুঁজে বের করতে সাহায্য করো" },
+    { icon: "fa-pen-nib", text: "Write a short creative story for me" },
+    { icon: "fa-route", text: "একটা weekend trip প্ল্যান করে দাও" }
+];
+
+const showWelcomeHero = () => {
+    chat.innerHTML = "";
+    const hero = document.createElement("div");
+    hero.className = "chat-hero";
+    hero.innerHTML = `
+        <div class="chat-hero-logo"><i class="fa-solid fa-atom"></i></div>
+        <h2>Hi, I'm Beyonder AI</h2>
+        <p>${WELCOME_MESSAGE}</p>
+        <div class="chat-hero-chips">
+            ${SUGGESTION_CHIPS.map((c) => `
+                <button type="button" class="chip" data-prompt="${c.text.replace(/"/g, "&quot;")}">
+                    <i class="fa-solid ${c.icon}"></i><span>${c.text}</span>
+                </button>
+            `).join("")}
+        </div>
+    `;
+    chat.appendChild(hero);
+    hero.querySelectorAll(".chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            input.value = btn.dataset.prompt;
+            handleSend();
+        });
+    });
+};
+
 // All Beyonder backend (PythonAnywhere) calls go through this one constant —
 // previously the same URL was hardcoded in four separate places, which made
 // it easy for them to drift out of sync during future edits.
@@ -332,6 +366,12 @@ const logoutUser = () => {
    MESSAGE RENDERING
    ========================================================= */
 const appendMessage = (text, type, { animate = true } = {}) => {
+    // If the welcome hero is still showing, clear it out first — once a
+    // real message (from the user, the AI, or an admin) arrives, the
+    // hero's job is done.
+    const hero = chat.querySelector(".chat-hero");
+    if (hero) hero.remove();
+
     const newChatDiv = document.createElement("div");
 
     if (type === "incoming") {
@@ -412,7 +452,7 @@ const loadHistory = () => {
         chat.scrollTop = chat.scrollHeight;
     } else {
         chatHistory = [];
-        appendMessage(WELCOME_MESSAGE, "incoming", { animate: false });
+        showWelcomeHero();
     }
 };
 
@@ -420,7 +460,7 @@ const startNewChat = () => {
     chatHistory = [];
     localStorage.removeItem(STORAGE_KEY);
     chat.innerHTML = "";
-    appendMessage(WELCOME_MESSAGE, "incoming");
+    showWelcomeHero();
 };
 
 newChatBtn.addEventListener("click", startNewChat);
@@ -682,7 +722,7 @@ const openProfileModal = async () => {
         if (data.success) {
             profileNameInput.value = data.name || "";
             profileEmailDisplay.value = data.email || "";
-            setAvatarPreview(data.avatar || null, data.name || "");
+            setAvatarPreview(data.avatar || null);
            setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {

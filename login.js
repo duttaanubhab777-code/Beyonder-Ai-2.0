@@ -5,7 +5,12 @@
     const themeIcon = themeToggleBtn.querySelector("i");
     const applyTheme = (theme) => {
         document.documentElement.setAttribute("data-theme", theme);
-        themeIcon.className = theme === "light" ? "fa-solid fa-moon" : "fa-solid fa-sun";
+        // Bug fix: this used to show the *opposite* icon compared to the chat
+        // page (app.js), so switching between login.html and index.html made
+        // the sun/moon icon flip for no reason even though the theme itself
+        // hadn't changed. Now both pages agree: light theme -> sun icon,
+        // dark theme -> moon icon.
+        themeIcon.className = theme === "light" ? "fa-solid fa-sun" : "fa-solid fa-moon";
         localStorage.setItem("beyonder-theme", theme);
     };
     const savedTheme = localStorage.getItem("beyonder-theme");
@@ -26,6 +31,48 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
     document.querySelectorAll('[data-switch]').forEach(el => {
         el.addEventListener('click', () => switchScreen(el.dataset.switch));
     });
+
+    /* ============================================================
+       NEW-DEVICE DEFAULT SCREEN
+       If this browser has never had a Beyonder AI account logged in
+       or signed up on it before, open on the Sign Up screen instead
+       of Login — a brand-new visitor almost never has an account
+       yet, so this saves them the extra "Sign Up" tap.
+       Once they successfully log in or sign up (see below), this
+       device is remembered as "returning", so next time (e.g. after
+       logging out) it opens on Login as usual.
+       ============================================================ */
+    const RETURNING_USER_KEY = 'beyonder_returning_user';
+    const markAsReturningUser = () => localStorage.setItem(RETURNING_USER_KEY, '1');
+    if (!localStorage.getItem(RETURNING_USER_KEY)) {
+        switchScreen('signup-screen');
+    }
+
+    /* ============================================================
+       ALREADY LOGGED IN? Skip the login/signup screens entirely.
+       Bug fix: previously, a user who still had a valid saved
+       session (e.g. they just navigated back to login.html by
+       mistake, or opened it from a bookmark) would see the login
+       form again instead of going straight back into the chat.
+       ============================================================ */
+    (async () => {
+        const token = localStorage.getItem("beyonder_token");
+        if (!token) return;
+        try {
+            // Hardcoded here (rather than the API_BASE constant declared
+            // further down this file) because this check runs immediately —
+            // before that later `const` declaration has executed.
+            const res = await fetch("https://anubhabdutta.pythonanywhere.com/api/me", {
+                headers: { "Authorization": token }
+            });
+            const data = await res.json();
+            if (data.logged_in) {
+                window.location.href = "index.html";
+            }
+        } catch (e) {
+            // Network hiccup — just let them use the login/signup form normally.
+        }
+    })();
 
     /* ============================================================
        PASSWORD SHOW/HIDE TOGGLE
@@ -180,6 +227,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         }
         
         localStorage.setItem("beyonder-user", email);
+        markAsReturningUser();
         window.location.href = "index.html";
                
         } catch (err) {
@@ -272,6 +320,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
             }
 
             localStorage.setItem("beyonder-user", pendingSignupEmail);
+            markAsReturningUser();
             window.location.href = "index.html";
         } catch (err) {
                            
@@ -368,6 +417,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
                 otp,
                 new_password: newPassword
             });
+            markAsReturningUser();
             switchScreen('login-screen');
         } catch (err) {
             showError('reset-error', err.message || 'Could not reset password.');

@@ -121,7 +121,7 @@ display: flex !important;
 flex-direction: row !important;
 align-items: center !important;
 gap: 10px !important;
-flex-wrap: nowrap !important; / নিচে নামা বন্ধ করবে */
+flex-wrap: nowrap !important; /* নিচে নামা বন্ধ করবে */
 z-index: 10;
 }
 
@@ -278,6 +278,109 @@ nav h1 span{
 
 [data-theme="light"] .chat-area::-webkit-scrollbar-thumb{
     background: rgba(90,50,250,0.18);
+}
+
+/* =========================================
+   CHAT HERO — the empty-state welcome screen.
+   Replaces the old single "Hello, I am Beyonder" bubble with a proper
+   centered hero + tap-to-send suggestion chips, so a first-time user
+   immediately sees something inviting to tap instead of a blank chat.
+   ========================================= */
+.chat-hero{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:6px;
+    padding:24px 12px;
+    animation:fadeIn 0.45s ease;
+}
+
+.chat-hero-logo{
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    color:var(--accent-2);
+    background:radial-gradient(circle at 35% 30%, rgba(124,108,255,0.35), rgba(0,217,255,0.12) 70%);
+    border:1px solid rgba(124,108,255,0.35);
+    box-shadow:0 0 26px rgba(124,108,255,0.35);
+    margin-bottom:14px;
+}
+
+.chat-hero-logo i{ animation:driftSpin 6s linear infinite; }
+
+.chat-hero h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:1.4rem;
+    font-weight:600;
+    margin-bottom:4px;
+}
+
+.chat-hero p{
+    color:var(--text-muted);
+    font-size:0.92rem;
+    max-width:360px;
+    margin-bottom:24px;
+}
+
+.chat-hero-chips{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:stretch;
+    justify-content:center;
+    gap:10px;
+    max-width:520px;
+}
+
+.chip{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:11px 16px;
+    border-radius:14px;
+    border:1px solid var(--border-subtle);
+    background:var(--bg-panel);
+    color:var(--text-primary);
+    font-family:inherit;
+    font-size:13.5px;
+    text-align:left;
+    cursor:pointer;
+    max-width:230px;
+    transition:transform 0.15s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chip i{
+    color:var(--accent-2);
+    font-size:14px;
+    flex-shrink:0;
+}
+
+.chip:hover{
+    transform:translateY(-2px);
+    border-color:rgba(124,108,255,0.4);
+    box-shadow:0 8px 20px rgba(124,108,255,0.18);
+}
+
+.chip:active{ transform:translateY(0) scale(0.98); }
+
+[data-theme="light"] .chip{
+    border:none;
+    box-shadow:var(--neu-out-sm);
+}
+[data-theme="light"] .chip:hover{
+    box-shadow:var(--neu-out);
+}
+
+@media (max-width:480px){
+    .chat-hero-logo{ width:54px; height:54px; font-size:22px; }
+    .chat-hero h2{ font-size:1.2rem; }
+    .chip{ max-width:100%; width:100%; }
 }
 
 .message{
@@ -936,15 +1039,20 @@ body.checking-auth .chat-input-area {
 ========================================= */
 .admin-chat-msg.from-admin {
 align-self: flex-start;
-background: linear-gradient(135deg, #ec4899, #9333ea); / পিঙ্ক থেকে বেগুনি গ্রেডিয়েন্ট /
+background: linear-gradient(135deg, #ec4899, #9333ea); /* পিঙ্ক থেকে বেগুনি গ্রেডিয়েন্ট */
 border: none;
 color: #ffffff;
 border-radius: 4px 14px 14px 14px;
-box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25); / হালকা পিঙ্ক শ্যাডো */
+box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25); /* হালকা পিঙ্ক শ্যাডো */
 }
 .admin-chat-msg.from-admin .meta {
 color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
 }
+.admin-chat-msg.from-admin .meta {
+color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
+}
+
+/* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
 
 /* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
 
@@ -1001,16 +1109,100 @@ color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পে�
 }
 @media (max-width: 480px){
 .logo-wrapper h1 {
-font-size: 0.95rem; /* ফন্ট সাইজ সামান্য ছোট করা হলো যাতে Beyonder AI এক লাইনেই ধরে যায় /
+font-size: 0.95rem; /* ফন্ট সাইজ সামান্য ছোট করা হলো যাতে Beyonder AI এক লাইনেই ধরে যায় */
 }
 .logo-wrapper h1 span {
-display: inline !important; / 'AI' লেখাটি আবার দৃশ্যমান করা হলো */
+display: inline !important; /* 'AI' লেখাটি আবার দৃশ্যমান করা হলো */
 }
 .icon-btn{
 width: 32px;
 height: 32px;
 font-size: 12.5px;
 }
+}
+
+/* =========================================
+   UPDATE TOAST — "a new version is live" popup.
+   Shown when the service worker detects a fresh deploy while the
+   user already has the app open, so changes actually reach them
+   instead of silently sitting behind an old cached copy.
+   ========================================= */
+.update-toast{
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translate(-50%, 120%);
+    z-index:2000;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    max-width:min(92vw, 420px);
+    padding:14px 14px 14px 16px;
+    background:var(--bg-panel);
+    border:1px solid var(--border-subtle);
+    border-radius:16px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    opacity:0;
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
+}
+[data-theme="light"] .update-toast{ border:none; box-shadow:var(--neu-out); }
+.update-toast.show{ transform:translate(-50%, 0); opacity:1; }
+
+.update-toast-icon{
+    flex-shrink:0;
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    color:#fff;
+    font-size:14px;
+    animation:driftSpin 3.5s linear infinite;
+}
+.update-toast-text{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    line-height:1.3;
+}
+.update-toast-text strong{ font-size:0.88rem; font-weight:600; }
+.update-toast-text span{ font-size:0.78rem; color:var(--text-muted); }
+
+.update-toast-btn{
+    flex-shrink:0;
+    border:none;
+    outline:none;
+    padding:9px 16px;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:0.83rem;
+    font-weight:600;
+    color:#fff;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(124,108,255,0.35);
+    transition:transform 0.15s ease;
+}
+.update-toast-btn:hover{ transform:translateY(-1px); }
+.update-toast-btn:active{ transform:scale(0.96); }
+
+.update-toast-close{
+    flex-shrink:0;
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    font-size:16px;
+    cursor:pointer;
+    padding:2px 4px;
+    line-height:1;
+}
+.update-toast-close:hover{ color:var(--text-primary); }
+
+@media (max-width:480px){
+    .update-toast{ bottom:14px; padding:12px 12px 12px 14px; gap:10px; }
+    .update-toast-text strong{ font-size:0.82rem; }
+    .update-toast-text span{ font-size:0.73rem; }
+    .update-toast-btn{ padding:8px 12px; font-size:0.78rem; }
 }
 
     

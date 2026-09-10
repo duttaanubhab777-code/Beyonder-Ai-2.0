@@ -13,6 +13,12 @@
 <!-- index.html-er shathe ekoi design system use korar jonno style.css link kora hoyeche -->
 <link rel="stylesheet" href="style.css">
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0b10">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Beyonder AI">
+
 <style>
     /* ---------- login/signup page-specific styling (style.css-er variable use kore) ---------- */
     body{ align-items:stretch; }
@@ -142,7 +148,7 @@
     <h1>Beyonder <span>AI</span></h1>
     <div class="nav-actions">
         <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle dark or light theme">
-            <i class="fa-solid fa-sun"></i>
+            <i class="fa-solid fa-moon"></i>
         </button>
     </div>
 </nav>
@@ -316,6 +322,7 @@
 
 </div>
 
+<script src="pwa-update.js"></script>
 <script src="login.js"></script>
 </body>
 </html>
