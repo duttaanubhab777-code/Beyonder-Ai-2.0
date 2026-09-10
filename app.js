@@ -722,7 +722,7 @@ const openProfileModal = async () => {
         if (data.success) {
             profileNameInput.value = data.name || "";
             profileEmailDisplay.value = data.email || "";
-            setAvatarPreview(data.avatar || null);
+            setAvatarPreview(data.avatar || null, data.name || "");
            setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
