@@ -78,7 +78,10 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
     });
 });
 
-
+const historyBtn = document.getElementById("history-btn");
+if (historyBtn) {
+    historyBtn.addEventListener("click", closeSidebar);
+}
 
 /* =========================================================
    PWA: INSTALL BUTTON
