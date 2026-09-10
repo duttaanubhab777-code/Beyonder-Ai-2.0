@@ -67,7 +67,11 @@ const openSidebar = () => {
         sidebarOverlay.classList.add("active");
         sidebarMenu.classList.add("open");
     }, 10);
+    
+    // সাইডবার খুললেই যেন পুরনো চ্যাটের লিস্ট আপডেট হয়ে যায়
+    loadSidebarSessions(); 
 };
+
 
 const closeSidebar = () => {
     sidebarOverlay.classList.remove("active");
@@ -78,6 +82,16 @@ const closeSidebar = () => {
 if (menuBtn) menuBtn.addEventListener("click", openSidebar);
 if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeSidebar);
 if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
+
+const historyBtn = document.getElementById("history-btn");
+if (historyBtn) {
+    historyBtn.addEventListener("click", () => {
+        if (typeof loadSidebarSessions === 'function') {
+            loadSidebarSessions();
+        }
+    });
+}
+
 
     // Clicking any option automatically closes the menu
 document.querySelectorAll('.sidebar-item').forEach(item => {
