@@ -845,9 +845,8 @@ const openProfileModal = async () => {
     currentPasswordInput.value = "";
     newPasswordInput.value = "";
     profileNameInput.value = "";
-    // যদি আগে থেকে কোনো তথ্য সেভ করা থাকে, তাহলে সেটি দেখাবে। 
-// না থাকলে ডিফল্ট হিসেবে ইউজারের নামটা এই বক্সে বসে যাবে।
-if (profileAddressInput) profileAddressInput.value = data.address || data.name || "";
+    if (profileAddressInput) profileAddressInput.value = "";
+   
    
     profileEmailDisplay.value = localStorage.getItem("beyonder-user") || "";
     setAvatarPreview(null);
@@ -857,7 +856,8 @@ if (profileAddressInput) profileAddressInput.value = data.address || data.name |
         const data = await res.json();
         if (data.success) {
             profileNameInput.value = data.name || "";
-            if (profileAddressInput) profileAddressInput.value = data.address || "";
+            if (profileAddressInput) profileAddressInput.value = data.address || data.name || "";
+           
             profileEmailDisplay.value = data.email || "";
             setAvatarPreview(data.avatar || null, data.name || "");
            setNavAvatar(data.avatar || null, data.name || "");
