@@ -59,17 +59,15 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  
-  // POST/PUT (login, chat, ইত্যাদি) কখনো touch করা যাবে না
-  if (request.method !== "GET") return; 
+  if (request.method !== "GET") return; // never touch POST/PUT (logins, chat sends, etc.)
 
   const url = new URL(request.url);
   const isSameOrigin = url.origin === self.location.origin;
   const looksLikeApi = url.pathname.includes("/api/") || url.pathname.includes("/admin/");
 
-  // API/cross-origin কল browser normally handle করুক
   if (!isSameOrigin || looksLikeApi) {
-    return; 
+    // Let the browser handle API calls and third-party requests normally.
+    return;
   }
 
   // Network-first: always try to get the freshest file. Only fall back to

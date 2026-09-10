@@ -1,5 +1,5 @@
 /* ============================================================
-       THEME TOGGLE (index.html-er shathe sync — ekoi key use kora hocche)
+       THEME TOGGLE (synced with index.html — uses the same localStorage key)
        ============================================================ */
     const themeToggleBtn = document.getElementById("theme-toggle-btn");
     const themeIcon = themeToggleBtn.querySelector("i");
@@ -88,7 +88,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
     });
 
     /* ============================================================
-       PASSWORD STRENGTH METER (client-side hint — real enforcement backend e hobe)
+       PASSWORD STRENGTH METER (client-side hint only — real enforcement happens on the backend)
        ============================================================ */
     const strengthLevels = [
         { color:'#d93025', label:'Too weak' },
@@ -150,16 +150,14 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
     }
 
     /* ============================================================
-       API HELPER — Python backend-er shathe fetch connect korar jonno
-       credentials:'include' rakha hoyeche jate backend httpOnly session
-       cookie set korle সেটা automatic pathano/gray hoy (localStorage-e
-       token/password rakha theke এটা onek beshi নিরাপদ, karon localStorage
-       XSS attack diye read kora jay, httpOnly cookie jay na)
+       API HELPER — connects fetch requests to the Python backend.
+       credentials: 'include' is kept so that if the backend ever sets an
+       httpOnly session cookie, it gets sent/received automatically
+       (an httpOnly cookie is much safer than keeping a token/password in
+       localStorage, since localStorage can be read via an XSS attack but
+       an httpOnly cookie cannot).
        ============================================================ */
-            /* ============================================================
-       API HELPER — Python backend-er shathe fetch connect korar jonno
-       ============================================================ */
-    const API_BASE = 'https://anubhabdutta.pythonanywhere.com'; // PythonAnywhere-এর লিংক
+    const API_BASE = 'https://anubhabdutta.pythonanywhere.com'; // PythonAnywhere backend URL
 
     
     async function apiRequest(url, payload){
@@ -183,12 +181,9 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         return data; 
     }
 
-    
-    /* [BACKEND DEV INSTRUCTION]
-       "Already logged in" check ekhane localStorage diye kora hocche na — eta
-       insecure ebong dev-testing-e loop/unwanted-redirect bug toiri kore.
-       Ei check-ta index.html load howar somoy backend-e GET /api/me (cookie shoho)
-       call kore korte হবে; session valid hole shudhu tokhon chat page dekhabe. */
+    /* Note: the actual login-check flow doesn't rely on localStorage alone —
+       see the "ALREADY LOGGED IN?" block above, which calls GET /api/me
+       with the saved token before deciding whether to skip this screen. */
 
     /* ============================================================
        LOGIN
@@ -213,13 +208,15 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         setLoading(btn, true, 'Logging in...');
 
         try {
-            /* [BACKEND DEV INSTRUCTION]
-               POST /api/login  body: { email, password }
-               - Server: email diye user khuje ber kore, bcrypt/argon2 diye password hash compare korবে
-               - Success: httpOnly, Secure, SameSite=Strict cookie-te session/JWT set kore { success:true } pathabe
-               - Fail: generic message pathabe — "Invalid email or password" (specific bole দেওয়া jabe na
-                 j email ache kina, eta user-enumeration attack thamay)
-               - Brute-force thekano jonno backend e rate-limiting (e.g. 5 try / 15 min per IP+email) rakha uchit */
+            /* POST /api/login — body: { email, password }
+               The server looks up the user by email, compares the password
+               against the stored hash, and on success returns a bearer
+               token (see app.py's api_login()), which is what gets saved
+               to localStorage below and sent as the Authorization header
+               on every future request. On failure it returns a generic
+               "Incorrect email or password" message (not "no such email"),
+               which avoids leaking whether an email is registered at all —
+               this also has server-side rate limiting against brute force. */
                     const res = await apiRequest('/api/login', { email, password });
 
         if (res.token) {
@@ -232,7 +229,7 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
                
         } catch (err) {
             showError('login-error', err.message || 'Invalid credentials!');
-            document.getElementById('login-password').value = ''; // fail hole password field clear kora hocche
+            document.getElementById('login-password').value = ''; // clear the password field on failure
             setLoading(btn, false);
         }
     });
@@ -267,16 +264,16 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         setLoading(btn, true, 'Sending OTP...');
 
         try {
-            /* [BACKEND DEV INSTRUCTION]
-               POST /api/signup/send-otp  body: { name, email, password }
-               - Server: password ke bcrypt/argon2 diye hash kore, ekta "pending_users" table/collection e
-                 (name, email, password_hash, otp_hash, expiry ~5 min) store korবে — plaintext password kothao save hobe na
-               - Email e OTP pathabe (raw password ar client-e ফেরত pathanor দরকার nei)
-               - Note: eivabe korle পরের verify-otp step-e শুধু email + otp pathale hoy,
-                 password abar client memory te বহন করা লাগে না (নিচে dekho) */
+            /* POST /api/signup/send-otp — body: { name, email, password }
+               The server hashes the password and stores it in a pending-
+               signups entry (name, email, password_hash, otp, expiry) —
+               the plaintext password is never saved anywhere. It then
+               emails the OTP to the user. Because of this, the following
+               verify-otp step only needs to send email + otp — the
+               password never has to be carried back in the client again. */
             const res = await apiRequest('/api/signup/send-otp', { name, email, password });
 
-            pendingSignupEmail = email; // shudhu email mone rakha hocche, password na
+            pendingSignupEmail = email; // only the email is remembered here, not the password
             startResendTimer('signup', res.resend_after || 60, 'otp-resend-btn', 'otp-timer');
             document.getElementById('otp-success-msg').style.display = 'block';
             document.getElementById('otp-input').value = '';
@@ -305,14 +302,15 @@ const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen',
         setLoading(btn, true, 'Verifying...');
 
         try {
-            /* [BACKEND DEV INSTRUCTION]
-               POST /api/signup/verify-otp  body: { email: pendingSignupEmail, otp }
-               - Server: pending_users theke record khuje, otp_hash match + expiry check kore
-               - Match korle: asol users table e account create kore (already-hashed password copy kore),
-                 pending record delete kore, httpOnly session cookie set kore { success:true } pathabe
-               - OTP wrong/expired hole generic error pathabe, ar brute-force thekano jonno
-                 max 5 attempt-er por OTP invalidate kore dewa uchit */
-                    
+            /* POST /api/signup/verify-otp — body: { email: pendingSignupEmail, otp }
+               The server looks up the pending signup entry, checks the OTP
+               and its expiry, and on a match creates the real account
+               (using the already-hashed password), deletes the pending
+               entry, and returns a bearer token (see app.py's
+               api_signup_verify_otp()). A wrong/expired OTP gets a generic
+               error, and verification attempts are capped server-side
+               (OTP_MAX_VERIFY_ATTEMPTS) to block brute-forcing the code. */
+
             const res = await apiRequest('/api/signup/verify-otp', { email: pendingSignupEmail, otp });
 
             if (res.token) {

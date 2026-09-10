@@ -1,17 +1,25 @@
 /* =========================================================
+   ADMIN "LOGIN AS USER" HAND-OFF
+   If this page was opened with ?admin_token=... (generated from the admin
+   dashboard's "Login As" button), adopt that token as this browser's own
+   session, then scrub it out of the visible URL so it doesn't linger in
+   browser history or get shared by accident.
+   ========================================================= */
+(() => {
+    const params = new URLSearchParams(window.location.search);
+    const adminToken = params.get("admin_token");
+    if (adminToken) {
+        localStorage.setItem("beyonder_token", adminToken);
+        params.delete("admin_token");
+        const rest = params.toString();
+        const cleanUrl = window.location.pathname + (rest ? `?${rest}` : "") + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+})();
+
+/* =========================================================
    THEME (dark / light) — persisted + follows system default
    ========================================================= */
-
-
-// app.js-এ সবার আগে, বা একটা আলাদা <script>-এ (login.js-এও একই কোড লাগবে যদি ওই পেজেও 100dvh থাকে)
-function setAppHeight() {
-    document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-}
-setAppHeight();
-window.addEventListener('resize', setAppHeight);
-window.addEventListener('orientationchange', setAppHeight);
-
-
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
 const themeIcon = themeToggleBtn.querySelector("i");
 
@@ -61,7 +69,7 @@ if (menuBtn) menuBtn.addEventListener("click", openSidebar);
 if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeSidebar);
 if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
-// কোনো অপশনে ক্লিক করলে মেনু নিজে থেকে বন্ধ হবে
+    // Clicking any option automatically closes the menu
 document.querySelectorAll('.sidebar-item').forEach(item => {
     item.addEventListener('click', () => {
         if(item.id !== 'theme-toggle-btn') {
@@ -167,7 +175,7 @@ const typeWriterEffect = (element, htmlText, parentDiv) => {
             });
             addCodeCopyButtons(element);
 
-            // টাইপিং শেষ হওয়ার পর, bubble এর বাইরে নিচে copy বাটন যোগ করা
+            // After typing finishes, add a copy button below the bubble
             const copyBtn = document.createElement("button");
             copyBtn.classList.add("copy-btn-outside");
             copyBtn.innerHTML = `<i class="fa-regular fa-copy"></i>`;
@@ -234,10 +242,10 @@ const STORAGE_KEY = "beyonder-chat-history";
    to try instead of a blank input box.
    ========================================================= */
 const SUGGESTION_CHIPS = [
-    { icon: "fa-lightbulb", text: "একটা কঠিন বিষয় সহজ ভাষায় বুঝিয়ে দাও" },
-    { icon: "fa-code", text: "আমার কোডের bug খুঁজে বের করতে সাহায্য করো" },
+    { icon: "fa-lightbulb", text: "Explain a tricky topic in simple terms" },
+    { icon: "fa-code", text: "Help me find a bug in my code" },
     { icon: "fa-pen-nib", text: "Write a short creative story for me" },
-    { icon: "fa-route", text: "একটা weekend trip প্ল্যান করে দাও" }
+    { icon: "fa-route", text: "Plan a weekend trip for me" }
 ];
 
 const showWelcomeHero = () => {
@@ -279,7 +287,7 @@ const checkAuth = async () => {
     try {
         const res = await fetch(`${BACKEND_BASE}/api/me`, {
             headers: {
-                "Authorization": token // টোকেন পাঠানো হচ্ছে
+                "Authorization": token // sending the token
             }
         });
         const data = await res.json();
@@ -299,18 +307,23 @@ const checkAuth = async () => {
 
 let chatHistory = [];
 
+// Filled in once /api/profile responds (see the init block below). Only
+// ever contains what the user actually put on their profile — address is
+// effectively opt-in since it stays blank unless they choose to add one.
+const currentUserProfile = { name: "", address: "" };
+
 const API_URL = "https://beyonder-api.vercel.app/api/chat";
 
 
-// 👇 Python (Flask) সার্ভারে চ্যাট সেভ করার লিঙ্ক
+// Link for saving chats to the Python (Flask) server
 const DB_API_URL = `${BACKEND_BASE}/api/save-chat`;
 
-// 👇 Admin panel থেকে সরাসরি পাঠানো মেসেজ চেক করার এন্ডপয়েন্ট (নতুন)
+// Endpoint for checking messages sent directly from the admin panel (new)
 const CHECK_MESSAGES_URL = `${BACKEND_BASE}/api/check-messages`;
 const ADMIN_MSG_ID_KEY = "beyonder-last-admin-msg-id";
 
 
-// 👇 Python সার্ভারে ডেটা পাঠানোর ফাংশন (Token দিয়ে)
+// Function for sending data to the Python server (with Token)
 const saveToFriendDatabase = async (userText, aiText) => {
     const token = localStorage.getItem("beyonder_token");
     try {
@@ -318,7 +331,7 @@ const saveToFriendDatabase = async (userText, aiText) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": token // টোকেন পাঠানো হচ্ছে
+                "Authorization": token // sending the token
             },
             body: JSON.stringify({
                 user_message: userText,
@@ -329,7 +342,7 @@ const saveToFriendDatabase = async (userText, aiText) => {
         const result = await response.json();
         console.log("Database Response:", result);
     } catch (error) {
-        console.error("Database কানেক্ট হতে সমস্যা হয়েছে:", error);
+        console.error("Could not connect to the database:", error);
     }
 };
 
@@ -340,19 +353,19 @@ const saveToFriendDatabase = async (userText, aiText) => {
 const logoutUser = () => {
     const token = localStorage.getItem("beyonder_token");
     
-    // ব্রাউজারের স্টোরেজ ক্লিয়ার
+    // Clear browser storage
     localStorage.removeItem(STORAGE_KEY); 
     localStorage.removeItem("beyonder_token"); 
     localStorage.removeItem(ADMIN_MSG_ID_KEY);
     
-    // সার্ভার থেকে লগআউট
+    // Log out from the server
     fetch(`${BACKEND_BASE}/api/logout`, {
         method: "POST",
         headers: {
             "Authorization": token
         }
     }).finally(() => {
-        window.location.href = "login.html"; // আপনার লগইন পেজের নাম
+        window.location.href = "login.html"; // your login page's filename
     });
 };
 
@@ -433,15 +446,35 @@ const saveHistory = () => {
     }
 };
 
-const loadHistory = () => {
-    let saved = null;
+const CHAT_HISTORY_URL = `${BACKEND_BASE}/api/chat-history`;
+
+const loadHistory = async () => {
+    chat.innerHTML = "";
+
+    // Source of truth is now our own database (via /api/chat-history), not
+    // just this one browser's localStorage — that's what lets a user open
+    // Beyonder AI on a different device, or after clearing their browser
+    // data, and still have the AI aware of their earlier conversations.
+    let serverHistory = null;
     try {
-        saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        const token = localStorage.getItem("beyonder_token");
+        const res = await fetch(CHAT_HISTORY_URL, { headers: { "Authorization": token } });
+        const data = await res.json();
+        if (data.success) serverHistory = data.history;
     } catch (e) {
-        saved = null;
+        console.warn("Could not load chat history from server, falling back to local cache:", e);
     }
 
-    chat.innerHTML = "";
+    let saved = serverHistory;
+    if (!saved) {
+        // Offline / server unreachable — fall back to whatever was cached
+        // locally last time, so the app still works without a connection.
+        try {
+            saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        } catch (e) {
+            saved = null;
+        }
+    }
 
     if (saved && Array.isArray(saved) && saved.length > 0) {
         chatHistory = saved;
@@ -450,6 +483,7 @@ const loadHistory = () => {
             appendMessage(text, turn.role === "user" ? "outgoing" : "incoming", { animate: false });
         });
         chat.scrollTop = chat.scrollHeight;
+        saveHistory(); // keep the local cache mirrored, for the offline-fallback case above
     } else {
         chatHistory = [];
         showWelcomeHero();
@@ -457,8 +491,11 @@ const loadHistory = () => {
 };
 
 const startNewChat = () => {
-    chatHistory = [];
-    localStorage.removeItem(STORAGE_KEY);
+    // Product decision: "New Chat" only gives a clean-looking chat window —
+    // it does NOT erase Beyonder AI's memory of this user's past
+    // conversations. chatHistory (what actually gets sent to the AI) is
+    // deliberately left untouched here, so the assistant still has full
+    // context pulled from our database even in a fresh-looking thread.
     chat.innerHTML = "";
     showWelcomeHero();
 };
@@ -506,16 +543,20 @@ const pollAdminMessages = async () => {
             const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
             const data = await res.json();
             if (data.success) {
-    cachedProfileName = data.name || "";
-    cachedProfileAvatar = data.avatar || null;
-    setNavAvatar(cachedProfileAvatar, cachedProfileName);
+                setNavAvatar(data.avatar || null, data.name || "");
+                // Stored for getGeminiResponse() to personalize the system
+                // instruction — only ever included if the user actually
+                // filled these in on their profile (address is opt-in by
+                // virtue of being blank unless they chose to add it).
+                currentUserProfile.name = data.name || "";
+                currentUserProfile.address = data.address || "";
             }
         } catch (e) {}
 
         pollAdminMessages();
         setInterval(pollAdminMessages, ADMIN_MESSAGE_POLL_MS);
         document.body.classList.remove("checking-auth");
-        loadHistory();
+        await loadHistory();
     }
 })();
 
@@ -531,7 +572,7 @@ const setComposerDisabled = (disabled) => {
 
 const getGeminiResponse = async (userText) => {
 
-    // ১. ইউজারের মেসেজ মেমোরিতে সেভ
+    // 1. Save the user's message to memory
     chatHistory.push({
         role: "user",
         parts: [{ text: userText }]
@@ -559,6 +600,7 @@ IDENTITY:
 - Your name is Beyonder AI, created by Anubhab Dutta & Arnab Adhikari. Don't volunteer what API or technology powers you unless someone directly asks.
 - If someone directly asks whether you're built on Google/Gemini or what API you use, say something like: "That's something I'd rather not get into — but I'm here as Beyonder AI, made by Anubhab Dutta & Arnab Adhikari. What can I help you with?"
 - Never deny or claim ignorance about being built on Gemini if asked directly — just redirect politely as above.
+${currentUserProfile.name ? `\nUSER INFO (use naturally — e.g. greet them by name — don't make a show of reciting these back):\n- Name: ${currentUserProfile.name}` : ""}${currentUserProfile.address ? `\n- Address: ${currentUserProfile.address}` : ""}
 
 Today's date: ${new Date().toDateString()}`
                     }]
@@ -574,14 +616,14 @@ Today's date: ${new Date().toDateString()}`
         if (data.candidates && data.candidates[0].content) {
             aiText = data.candidates[0].content.parts[0].text;
 
-            // ২. এআই-এর উত্তর মেমোরিতে সেভ
+            // 2. Save the AI's response to memory
             chatHistory.push({
                 role: "model",
                 parts: [{ text: aiText }]
             });
             saveHistory();
 
-            // 👇 ঠিক এখানেই ডাটাবেসে সেভ করার ফাংশনটি কল করতে হবে
+            // 👇 The database-save function gets called right here
             if (typeof saveToFriendDatabase === "function") {
                 saveToFriendDatabase(userText, aiText);
             }
@@ -627,15 +669,15 @@ sendBtn.addEventListener("click", handleSend);
 
 input.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
-        event.preventDefault(); // ডিফল্ট বিহেভিয়ার বন্ধ (send হওয়া আটকাচ্ছে)
+        event.preventDefault(); // stop the default behavior (prevents sending)
 
-        // কার্সরের জায়গায় ম্যানুয়ালি একটা newline বসিয়ে দেওয়া
+        // manually insert a newline at the cursor position
         const start = input.selectionStart;
         const end = input.selectionEnd;
         input.value = input.value.substring(0, start) + "\n" + input.value.substring(end);
         input.selectionStart = input.selectionEnd = start + 1;
 
-        // নতুন লাইন যোগ হওয়ার পর height আপডেট করা
+        // update the height after the new line is added
         input.style.height = "auto";
         input.style.height = input.scrollHeight + "px";
     }
@@ -681,6 +723,7 @@ const avatarPreview = document.getElementById("avatar-preview");
 const avatarUploadBtn = document.getElementById("avatar-upload-btn");
 const avatarFileInput = document.getElementById("avatar-file-input");
 const profileNameInput = document.getElementById("profile-name-input");
+const profileAddressInput = document.getElementById("profile-address-input");
 const profileEmailDisplay = document.getElementById("profile-email-display");
 const profileSaveBtn = document.getElementById("profile-save-btn");
 const profileSaveStatus = document.getElementById("profile-save-status");
@@ -690,17 +733,12 @@ const passwordSaveBtn = document.getElementById("password-save-btn");
 const passwordSaveStatus = document.getElementById("password-save-status");
 
 let pendingAvatarDataUrl = null; // set only if the user picked a new photo this session
-let cachedProfileName = "";
-let cachedProfileAvatar = null;
-const setAvatarPreview = (dataUrlOrNull, name) => {
+
+const setAvatarPreview = (dataUrlOrNull) => {
     if (dataUrlOrNull) {
         avatarPreview.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
-        avatarPreview.style.background = "transparent";
     } else {
-        const initial = (name || "?").trim().charAt(0).toUpperCase();
-        avatarPreview.innerHTML = initial;
-        avatarPreview.style.background = colorForName(name || "?");
-        avatarPreview.style.color = "#fff";
+        avatarPreview.innerHTML = `<i class="fa-solid fa-user"></i>`;
     }
 };
 
@@ -718,18 +756,18 @@ const openProfileModal = async () => {
     currentPasswordInput.value = "";
     newPasswordInput.value = "";
     profileNameInput.value = "";
+    if (profileAddressInput) profileAddressInput.value = "";
     profileEmailDisplay.value = localStorage.getItem("beyonder-user") || "";
-    setAvatarPreview(cachedProfileAvatar, cachedProfileName);
+    setAvatarPreview(null);
     const token = localStorage.getItem("beyonder_token");
     try {
         const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
         const data = await res.json();
         if (data.success) {
             profileNameInput.value = data.name || "";
+            if (profileAddressInput) profileAddressInput.value = data.address || "";
             profileEmailDisplay.value = data.email || "";
-            cachedProfileName = data.name || "";
-cachedProfileAvatar = data.avatar || null;
-setAvatarPreview(cachedProfileAvatar, cachedProfileName);
+            setAvatarPreview(data.avatar || null);
            setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
@@ -770,7 +808,7 @@ if (avatarFileInput) {
                 const w = img.width * scale, h = img.height * scale;
                 ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
                 pendingAvatarDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-setAvatarPreview(pendingAvatarDataUrl, profileNameInput.value);
+                setAvatarPreview(pendingAvatarDataUrl);
             };
             img.src = e.target.result;
         };
@@ -788,6 +826,7 @@ if (profileSaveBtn) {
         profileSaveBtn.disabled = true;
         setStatus(profileSaveStatus, "Saving…");
         const payload = { name };
+        if (profileAddressInput) payload.address = profileAddressInput.value.trim();
         if (pendingAvatarDataUrl) payload.avatar = pendingAvatarDataUrl;
         try {
             const res = await fetch(PROFILE_UPDATE_URL, {
@@ -800,6 +839,8 @@ if (profileSaveBtn) {
     setStatus(profileSaveStatus, "Saved!", "success");
     setNavAvatar(pendingAvatarDataUrl || avatarPreview.querySelector("img")?.src || null, name);
     pendingAvatarDataUrl = null;
+    currentUserProfile.name = name;
+    if (profileAddressInput) currentUserProfile.address = profileAddressInput.value.trim();
           }   else {
                 setStatus(profileSaveStatus, data.message || "Could not save.", "error");
             }
