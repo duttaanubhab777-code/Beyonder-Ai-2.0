@@ -505,7 +505,11 @@ const pollAdminMessages = async () => {
             const token = localStorage.getItem("beyonder_token");
             const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
             const data = await res.json();
-            if (data.success) setNavAvatar(data.avatar || null, data.name || "");
+            if (data.success) {
+    cachedProfileName = data.name || "";
+    cachedProfileAvatar = data.avatar || null;
+    setNavAvatar(cachedProfileAvatar, cachedProfileName);
+            }
         } catch (e) {}
 
         pollAdminMessages();
@@ -686,7 +690,8 @@ const passwordSaveBtn = document.getElementById("password-save-btn");
 const passwordSaveStatus = document.getElementById("password-save-status");
 
 let pendingAvatarDataUrl = null; // set only if the user picked a new photo this session
-
+let cachedProfileName = "";
+let cachedProfileAvatar = null;
 const setAvatarPreview = (dataUrlOrNull, name) => {
     if (dataUrlOrNull) {
         avatarPreview.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
@@ -714,7 +719,7 @@ const openProfileModal = async () => {
     newPasswordInput.value = "";
     profileNameInput.value = "";
     profileEmailDisplay.value = localStorage.getItem("beyonder-user") || "";
-    setAvatarPreview(null);
+    setAvatarPreview(cachedProfileAvatar, cachedProfileName);
     const token = localStorage.getItem("beyonder_token");
     try {
         const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
@@ -722,7 +727,9 @@ const openProfileModal = async () => {
         if (data.success) {
             profileNameInput.value = data.name || "";
             profileEmailDisplay.value = data.email || "";
-            setAvatarPreview(data.avatar || null, data.name || "");
+            cachedProfileName = data.name || "";
+cachedProfileAvatar = data.avatar || null;
+setAvatarPreview(cachedProfileAvatar, cachedProfileName);
            setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
