@@ -4,7 +4,7 @@
 // looks like an API call (login, chat, admin messages, etc.) always goes
 // straight to the network — we never want to serve stale chat/auth data.
 
-const CACHE_NAME = "beyonder-shell-v1";
+const CACHE_NAME = "beyonder-shell-v2"; // ভার্সন চেঞ্জ করলাম যাতে নতুনটা আপডেট হয়
 const APP_SHELL = [
   "index.html",
   "login.html",
@@ -34,43 +34,29 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET") return; // POST/PUT (login, chat, ইত্যাদি) কখনো touch করা যাবে না
+  
+  // POST/PUT (login, chat, ইত্যাদি) কখনো touch করা যাবে না
+  if (request.method !== "GET") return; 
 
   const url = new URL(request.url);
   const isSameOrigin = url.origin === self.location.origin;
   const looksLikeApi = url.pathname.includes("/api/") || url.pathname.includes("/admin/");
 
+  // API/cross-origin কল browser normally handle করুক
   if (!isSameOrigin || looksLikeApi) {
-    return; // API/cross-origin কল browser normally handle করুক
+    return; 
   }
 
+  // Network First Strategy: আগে নেটওয়ার্ক থেকে আনবে, নেট না থাকলে ক্যাশ দেখাবে
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // নেট থেকে সফলভাবে এলে সেটাই দেখাও, আর cache-ও আপডেট করে রাখো
         if (response && response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
       })
-      .catch(() => caches.match(request)) // অফলাইনে হলে শুধু তখনই পুরোনো cache
+      .catch(() => caches.match(request))
   );
 });
-
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      const networkFetch = fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || networkFetch;
-    })
-  );
-});
-
