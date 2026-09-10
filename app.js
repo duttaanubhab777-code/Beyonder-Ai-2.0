@@ -78,10 +78,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
     });
 });
 
-const historyBtn = document.getElementById("history-btn");
-if (historyBtn) {
-    historyBtn.addEventListener("click", closeSidebar);
-}
+
 
 /* =========================================================
    PWA: INSTALL BUTTON
@@ -355,7 +352,25 @@ const saveToFriendDatabase = async (userText, aiText) => {
    ========================================================= */
 const logoutUser = () => {
     const token = localStorage.getItem("beyonder_token");
-    
+
+    // Stop push notifications from following this device past logout —
+    // otherwise, until someone else logs in and re-subscribes, this
+    // browser would keep getting notified about messages meant for the
+    // account that just logged out.
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.ready
+            .then((registration) => registration.pushManager.getSubscription())
+            .then((subscription) => {
+                if (!subscription) return;
+                fetch(`${BACKEND_BASE}/api/push/unsubscribe`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": token },
+                    body: JSON.stringify({ endpoint: subscription.endpoint }),
+                }).finally(() => subscription.unsubscribe());
+            })
+            .catch(() => {});
+    }
+
     // Clear browser storage
     localStorage.removeItem(STORAGE_KEY); 
     localStorage.removeItem("beyonder_token"); 
@@ -538,6 +553,68 @@ const pollAdminMessages = async () => {
     }
 };
 
+/* =========================================================
+   PUSH NOTIFICATIONS
+   Subscribes this device so that when an admin messages this user, a
+   real notification pops up on the phone's home screen — instantly if
+   the device is online, or the moment it comes back online otherwise
+   (that part is handled by the browser's own push service, not this
+   code). Fails silently everywhere: if the browser doesn't support
+   push, or the user denies the permission prompt, the app just carries
+   on working without notifications.
+   ========================================================= */
+const VAPID_KEY_URL = `${BACKEND_BASE}/api/push/vapid-public-key`;
+const PUSH_SUBSCRIBE_URL = `${BACKEND_BASE}/api/push/subscribe`;
+
+// Web Push wants the VAPID public key as a raw Uint8Array, but it's
+// handed to us (and travels over the network) as a base64url string.
+const urlBase64ToUint8Array = (base64String) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i++) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+};
+
+const initPushNotifications = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+        return; // browser doesn't support Web Push at all
+    }
+    if (Notification.permission === "denied") {
+        return; // user already said no — don't re-prompt
+    }
+
+    try {
+        const keyRes = await fetch(VAPID_KEY_URL);
+        const keyData = await keyRes.json();
+        if (!keyData.success) return; // push isn't configured on the server
+
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(keyData.publicKey),
+            });
+        }
+
+        const token = localStorage.getItem("beyonder_token");
+        await fetch(PUSH_SUBSCRIBE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": token },
+            body: JSON.stringify(subscription.toJSON()),
+        });
+    } catch (e) {
+        console.warn("Push notification setup skipped:", e);
+    }
+};
+
 (async () => {
     const ok = await checkAuth();
     if (ok) {
@@ -558,6 +635,7 @@ const pollAdminMessages = async () => {
 
         pollAdminMessages();
         setInterval(pollAdminMessages, ADMIN_MESSAGE_POLL_MS);
+        initPushNotifications();
         document.body.classList.remove("checking-auth");
         await loadHistory();
     }
