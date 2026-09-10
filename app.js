@@ -24,24 +24,56 @@ themeToggleBtn.addEventListener("click", () => {
     applyTheme(isLight ? "dark" : "light");
 });
 
+/* =========================================================
+   SIDEBAR MENU LOGIC
+   ========================================================= */
+const menuBtn = document.getElementById("menu-btn");
+const closeSidebarBtn = document.getElementById("close-sidebar-btn");
+const sidebarMenu = document.getElementById("sidebar-menu");
+const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+const openSidebar = () => {
+    sidebarOverlay.hidden = false;
+    setTimeout(() => {
+        sidebarOverlay.classList.add("active");
+        sidebarMenu.classList.add("open");
+    }, 10);
+};
+
+const closeSidebar = () => {
+    sidebarOverlay.classList.remove("active");
+    sidebarMenu.classList.remove("open");
+    setTimeout(() => { sidebarOverlay.hidden = true; }, 300);
+};
+
+if (menuBtn) menuBtn.addEventListener("click", openSidebar);
+if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
+
+// কোনো অপশনে ক্লিক করলে মেনু নিজে থেকে বন্ধ হবে
+document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+        if(item.id !== 'theme-toggle-btn') {
+            closeSidebar();
+        }
+    });
+});
+
+
 
 /* =========================================================
-   PWA: INSTALL BUTTON + SERVICE WORKER
+   PWA: INSTALL BUTTON
    The install icon (top of the nav) only appears once the browser
    confirms the app is actually installable. Once installed and
    opened as a standalone app, login still works exactly the same
    way as in the browser: the auth token in localStorage is what
    keeps the user logged in, so there's nothing extra to "carry
    over" — installing just gives it its own icon/window.
-   ========================================================= */
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch((e) => {
-            console.warn("Service worker registration failed:", e);
-        });
-    });
-}
 
+   Service worker registration + the "new version available" popup
+   both live in pwa-update.js (shared with login.html) — see that
+   file for details.
+   ========================================================= */
 const installBtn = document.getElementById("install-btn");
 let deferredInstallPrompt = null;
 
@@ -184,6 +216,44 @@ const chat = document.getElementById("chat-area");
 const WELCOME_MESSAGE = "Hello, I am Beyonder. How can I help you?";
 const STORAGE_KEY = "beyonder-chat-history";
 
+/* =========================================================
+   WELCOME HERO — shown instead of a single chat bubble when
+   there's no conversation yet. Tapping a chip fills the composer
+   and sends it right away, giving a new visitor something inviting
+   to try instead of a blank input box.
+   ========================================================= */
+const SUGGESTION_CHIPS = [
+    { icon: "fa-lightbulb", text: "একটা কঠিন বিষয় সহজ ভাষায় বুঝিয়ে দাও" },
+    { icon: "fa-code", text: "আমার কোডের bug খুঁজে বের করতে সাহায্য করো" },
+    { icon: "fa-pen-nib", text: "Write a short creative story for me" },
+    { icon: "fa-route", text: "একটা weekend trip প্ল্যান করে দাও" }
+];
+
+const showWelcomeHero = () => {
+    chat.innerHTML = "";
+    const hero = document.createElement("div");
+    hero.className = "chat-hero";
+    hero.innerHTML = `
+        <div class="chat-hero-logo"><i class="fa-solid fa-atom"></i></div>
+        <h2>Hi, I'm Beyonder AI</h2>
+        <p>${WELCOME_MESSAGE}</p>
+        <div class="chat-hero-chips">
+            ${SUGGESTION_CHIPS.map((c) => `
+                <button type="button" class="chip" data-prompt="${c.text.replace(/"/g, "&quot;")}">
+                    <i class="fa-solid ${c.icon}"></i><span>${c.text}</span>
+                </button>
+            `).join("")}
+        </div>
+    `;
+    chat.appendChild(hero);
+    hero.querySelectorAll(".chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            input.value = btn.dataset.prompt;
+            handleSend();
+        });
+    });
+};
+
 // All Beyonder backend (PythonAnywhere) calls go through this one constant —
 // previously the same URL was hardcoded in four separate places, which made
 // it easy for them to drift out of sync during future edits.
@@ -285,6 +355,12 @@ const logoutUser = () => {
    MESSAGE RENDERING
    ========================================================= */
 const appendMessage = (text, type, { animate = true } = {}) => {
+    // If the welcome hero is still showing, clear it out first — once a
+    // real message (from the user, the AI, or an admin) arrives, the
+    // hero's job is done.
+    const hero = chat.querySelector(".chat-hero");
+    if (hero) hero.remove();
+
     const newChatDiv = document.createElement("div");
 
     if (type === "incoming") {
@@ -365,7 +441,7 @@ const loadHistory = () => {
         chat.scrollTop = chat.scrollHeight;
     } else {
         chatHistory = [];
-        appendMessage(WELCOME_MESSAGE, "incoming", { animate: false });
+        showWelcomeHero();
     }
 };
 
@@ -373,7 +449,7 @@ const startNewChat = () => {
     chatHistory = [];
     localStorage.removeItem(STORAGE_KEY);
     chat.innerHTML = "";
-    appendMessage(WELCOME_MESSAGE, "incoming");
+    showWelcomeHero();
 };
 
 newChatBtn.addEventListener("click", startNewChat);
@@ -385,7 +461,7 @@ newChatBtn.addEventListener("click", startNewChat);
    change to the chat UI itself, messages just appear as a normal
    incoming reply.
    ========================================================= */
-const ADMIN_MESSAGE_POLL_MS = 8000;
+const ADMIN_MESSAGE_POLL_MS = 30000;
 
 const pollAdminMessages = async () => {
     const token = localStorage.getItem("beyonder_token");
@@ -414,9 +490,16 @@ const pollAdminMessages = async () => {
 (async () => {
     const ok = await checkAuth();
     if (ok) {
+        try {
+            const token = localStorage.getItem("beyonder_token");
+            const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
+            const data = await res.json();
+            if (data.success) setNavAvatar(data.avatar || null, data.name || "");
+        } catch (e) {}
+
         pollAdminMessages();
         setInterval(pollAdminMessages, ADMIN_MESSAGE_POLL_MS);
-        document.body.classList.remove("checking-auth"); // <--- ঠিক এই লাইনটি এখানে জুড়ে দিন
+        document.body.classList.remove("checking-auth");
         loadHistory();
     }
 })();
@@ -550,7 +633,32 @@ input.addEventListener("keydown", (event) => {
 const PROFILE_API_URL = `${BACKEND_BASE}/api/profile`;
 const PROFILE_UPDATE_URL = `${BACKEND_BASE}/api/profile/update`;
 const PROFILE_PASSWORD_URL = `${BACKEND_BASE}/api/profile/change-password`;
+const AVATAR_COLORS = [
+    '#6b5cd6', '#e0568b', '#2a9d8f', '#e76f51', '#457b9d', '#f4a261',
+    '#d62828', '#06a77d', '#8338ec', '#fb8500', '#3a86ff', '#c9184a',
+    '#588157', '#bc6c25', '#219ebc', '#9d4edd', '#ef476f', '#118ab2',
+    '#ff6392', '#5f6caf'
+];
 
+const colorForName = (name) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+const navAvatar = document.getElementById("nav-avatar");
+
+const setNavAvatar = (dataUrlOrNull, name) => {
+    if (!navAvatar) return;
+    if (dataUrlOrNull) {
+        navAvatar.innerHTML = `<img src="${dataUrlOrNull}" alt="Profile photo">`;
+        navAvatar.style.background = "transparent";
+    } else {
+        const initial = (name || "?").trim().charAt(0).toUpperCase();
+        navAvatar.innerHTML = initial;
+        navAvatar.style.background = colorForName(name || "?");
+    }
+};
 const profileModal = document.getElementById("profile-modal");
 const profileBtn = document.getElementById("profile-btn");
 const profileModalClose = document.getElementById("profile-modal-close");
@@ -592,7 +700,6 @@ const openProfileModal = async () => {
     profileNameInput.value = "";
     profileEmailDisplay.value = localStorage.getItem("beyonder-user") || "";
     setAvatarPreview(null);
-
     const token = localStorage.getItem("beyonder_token");
     try {
         const res = await fetch(PROFILE_API_URL, { headers: { "Authorization": token } });
@@ -601,14 +708,13 @@ const openProfileModal = async () => {
             profileNameInput.value = data.name || "";
             profileEmailDisplay.value = data.email || "";
             setAvatarPreview(data.avatar || null);
+           setNavAvatar(data.avatar || null, data.name || "");
         }
     } catch (e) {
         console.error("Could not load profile:", e);
     }
 };
-
 const closeProfileModal = () => { profileModal.hidden = true; };
-
 if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
 if (profileModalClose) profileModalClose.addEventListener("click", closeProfileModal);
 if (profileModal) {
@@ -616,11 +722,9 @@ if (profileModal) {
         if (e.target === profileModal) closeProfileModal();
     });
 }
-
 if (avatarUploadBtn) {
     avatarUploadBtn.addEventListener("click", () => avatarFileInput.click());
 }
-
 if (avatarFileInput) {
     avatarFileInput.addEventListener("change", () => {
         const file = avatarFileInput.files[0];
@@ -629,7 +733,6 @@ if (avatarFileInput) {
             setStatus(profileSaveStatus, "Please choose an image file.", "error");
             return;
         }
-
         // Resize client-side to a small square thumbnail before sending,
         // so the photo stays lightweight in the database.
         const img = new Image();
@@ -652,7 +755,6 @@ if (avatarFileInput) {
         reader.readAsDataURL(file);
     });
 }
-
 if (profileSaveBtn) {
     profileSaveBtn.addEventListener("click", async () => {
         const token = localStorage.getItem("beyonder_token");
@@ -661,13 +763,10 @@ if (profileSaveBtn) {
             setStatus(profileSaveStatus, "Name cannot be empty.", "error");
             return;
         }
-
         profileSaveBtn.disabled = true;
         setStatus(profileSaveStatus, "Saving…");
-
         const payload = { name };
         if (pendingAvatarDataUrl) payload.avatar = pendingAvatarDataUrl;
-
         try {
             const res = await fetch(PROFILE_UPDATE_URL, {
                 method: "POST",
@@ -675,10 +774,11 @@ if (profileSaveBtn) {
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            if (data.success) {
-                setStatus(profileSaveStatus, "Saved!", "success");
-                pendingAvatarDataUrl = null;
-            } else {
+          if (data.success) {
+    setStatus(profileSaveStatus, "Saved!", "success");
+    setNavAvatar(pendingAvatarDataUrl || avatarPreview.querySelector("img")?.src || null, name);
+    pendingAvatarDataUrl = null;
+          }   else {
                 setStatus(profileSaveStatus, data.message || "Could not save.", "error");
             }
         } catch (e) {
@@ -688,13 +788,11 @@ if (profileSaveBtn) {
         }
     });
 }
-
 if (passwordSaveBtn) {
     passwordSaveBtn.addEventListener("click", async () => {
         const token = localStorage.getItem("beyonder_token");
         const current_password = currentPasswordInput.value;
         const new_password = newPasswordInput.value;
-
         if (!current_password || !new_password) {
             setStatus(passwordSaveStatus, "Please fill in both password fields.", "error");
             return;
@@ -703,10 +801,8 @@ if (passwordSaveBtn) {
             setStatus(passwordSaveStatus, "New password must be at least 8 characters.", "error");
             return;
         }
-
         passwordSaveBtn.disabled = true;
         setStatus(passwordSaveStatus, "Updating…");
-
         try {
             const res = await fetch(PROFILE_PASSWORD_URL, {
                 method: "POST",
@@ -728,26 +824,21 @@ if (passwordSaveBtn) {
         }
     });
 }
-
-
 /* =========================================================
    CHAT WITH ADMIN MODAL — a private line to a human admin,
    completely separate from the AI conversation above.
    ========================================================= */
 const ADMIN_CHAT_SEND_URL = `${BACKEND_BASE}/api/admin-chat/send`;
 const ADMIN_CHAT_MESSAGES_URL = `${BACKEND_BASE}/api/admin-chat/messages`;
-
 const adminChatModal = document.getElementById("admin-chat-modal");
 const adminChatBtn = document.getElementById("admin-chat-btn");
 const adminChatModalClose = document.getElementById("admin-chat-modal-close");
 const adminChatMessagesEl = document.getElementById("admin-chat-messages");
 const adminChatText = document.getElementById("admin-chat-text");
 const adminChatSendBtn = document.getElementById("admin-chat-send");
-
 let adminChatLastId = 0;
 let adminChatPollTimer = null;
 let adminChatAllMessages = [];
-
 const renderAdminChatMessages = () => {
     if (!adminChatAllMessages.length) {
         adminChatMessagesEl.innerHTML = `<div class="admin-chat-empty">No messages yet — say hello 👋</div>`;
@@ -763,51 +854,56 @@ const renderAdminChatMessages = () => {
     }).join("");
     adminChatMessagesEl.scrollTop = adminChatMessagesEl.scrollHeight;
 };
-
 function escapeAdminChatHtml(str) {
     const div = document.createElement("div");
     div.textContent = str ?? "";
     return div.innerHTML;
 }
-
 const pollAdminChat = async () => {
     const token = localStorage.getItem("beyonder_token");
     if (!token) return;
     try {
-        const res = await fetch(`${ADMIN_CHAT_MESSAGES_URL}?since_id=0`, {
+        const res = await fetch(`${ADMIN_CHAT_MESSAGES_URL}?since_id=${adminChatLastId}`, {
             headers: { "Authorization": token }
         });
         if (!res.ok) return;
         const data = await res.json();
-        if (data.success) {
-            adminChatAllMessages = data.messages;
+        if (data.success && data.messages && data.messages.length) {
+            adminChatAllMessages = adminChatAllMessages.concat(data.messages);
+            adminChatLastId = data.messages[data.messages.length - 1].id;
             renderAdminChatMessages();
         }
     } catch (e) {
         console.error("Could not poll admin chat:", e);
     }
 };
-
 const openAdminChatModal = () => {
     adminChatModal.hidden = false;
+    // Fresh history each time the modal is opened
+    adminChatLastId = 0;
+    adminChatAllMessages = [];
     pollAdminChat();
     if (adminChatPollTimer) clearInterval(adminChatPollTimer);
     adminChatPollTimer = setInterval(pollAdminChat, 4000);
 };
-
 const closeAdminChatModal = () => {
-    adminChatModal.hidden = true;
+    if (adminChatModal) adminChatModal.hidden = true;
     if (adminChatPollTimer) clearInterval(adminChatPollTimer);
 };
-
 if (adminChatBtn) adminChatBtn.addEventListener("click", openAdminChatModal);
-if (adminChatModalClose) adminChatModalClose.addEventListener("click", closeAdminChatModal);
+// Reliable click handler for closing via backdrop or any close button/icon
 if (adminChatModal) {
     adminChatModal.addEventListener("click", (e) => {
-        if (e.target === adminChatModal) closeAdminChatModal();
+        if (
+            e.target === adminChatModal || 
+            e.target.closest("#admin-chat-modal-close") || 
+            e.target.closest(".fa-xmark") || 
+            e.target.closest(".close-btn")
+        ) {
+            closeAdminChatModal();
+        }
     });
 }
-
 const sendAdminChatMessage = async () => {
     const token = localStorage.getItem("beyonder_token");
     const message = adminChatText.value.trim();
@@ -816,10 +912,6 @@ const sendAdminChatMessage = async () => {
     adminChatText.value = "";
     adminChatText.style.height = "auto";
     adminChatSendBtn.disabled = true;
-
-    // Optimistic append so it feels instant
-    adminChatAllMessages.push({ sender: "user", message, timestamp: Date.now() / 1000 });
-    renderAdminChatMessages();
 
     try {
         await fetch(ADMIN_CHAT_SEND_URL, {
@@ -847,4 +939,4 @@ if (adminChatText) {
             sendAdminChatMessage();
         }
     });
-}
+                              }
