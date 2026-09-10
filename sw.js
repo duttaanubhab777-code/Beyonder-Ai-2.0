@@ -34,16 +34,29 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET") return; // never touch POST/PUT (logins, chat sends, etc.)
+  if (request.method !== "GET") return; // POST/PUT (login, chat, ইত্যাদি) কখনো touch করা যাবে না
 
   const url = new URL(request.url);
   const isSameOrigin = url.origin === self.location.origin;
   const looksLikeApi = url.pathname.includes("/api/") || url.pathname.includes("/admin/");
 
   if (!isSameOrigin || looksLikeApi) {
-    // Let the browser handle API calls and third-party requests normally.
-    return;
+    return; // API/cross-origin কল browser normally handle করুক
   }
+
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        // নেট থেকে সফলভাবে এলে সেটাই দেখাও, আর cache-ও আপডেট করে রাখো
+        if (response && response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(request)) // অফলাইনে হলে শুধু তখনই পুরোনো cache
+  );
+});
 
   event.respondWith(
     caches.match(request).then((cached) => {
