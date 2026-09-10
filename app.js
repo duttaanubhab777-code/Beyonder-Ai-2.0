@@ -823,6 +823,7 @@ const setAvatarPreview = (dataUrlOrNull, name) => {
         const initial = name.trim().charAt(0).toUpperCase();
         avatarPreview.innerHTML = initial;
         avatarPreview.style.background = colorForName(name);
+       avatarPreview.style.color = "#ffffff";
     } else {
         avatarPreview.innerHTML = `<i class="fa-solid fa-user"></i>`;
         avatarPreview.style.background = ""; 
