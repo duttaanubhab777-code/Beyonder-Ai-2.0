@@ -845,7 +845,10 @@ const openProfileModal = async () => {
     currentPasswordInput.value = "";
     newPasswordInput.value = "";
     profileNameInput.value = "";
-    if (profileAddressInput) profileAddressInput.value = "";
+    // যদি আগে থেকে কোনো তথ্য সেভ করা থাকে, তাহলে সেটি দেখাবে। 
+// না থাকলে ডিফল্ট হিসেবে ইউজারের নামটা এই বক্সে বসে যাবে।
+if (profileAddressInput) profileAddressInput.value = data.address || data.name || "";
+   
     profileEmailDisplay.value = localStorage.getItem("beyonder-user") || "";
     setAvatarPreview(null);
     const token = localStorage.getItem("beyonder_token");
