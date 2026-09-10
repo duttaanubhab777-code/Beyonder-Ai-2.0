@@ -1,4 +1,14 @@
 /* =========================================================
+   SESSION MANAGEMENT
+   ========================================================= */
+const generateSessionId = () => "chat_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now();
+let currentSessionId = localStorage.getItem("beyonder-current-session") || "default_session";
+if (currentSessionId === "default_session") {
+    currentSessionId = generateSessionId();
+    localStorage.setItem("beyonder-current-session", currentSessionId);
+}
+
+/* =========================================================
    ADMIN "LOGIN AS USER" HAND-OFF
    If this page was opened with ?admin_token=... (generated from the admin
    dashboard's "Login As" button), adopt that token as this browser's own
@@ -331,20 +341,21 @@ const saveToFriendDatabase = async (userText, aiText) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": token // sending the token
+                "Authorization": token
             },
             body: JSON.stringify({
                 user_message: userText,
-                ai_response: aiText
+                ai_response: aiText,
+                session_id: currentSessionId // নতুন যোগ করা হলো
             })
         });
-
-        const result = await response.json();
-        console.log("Database Response:", result);
+        await response.json();
+        loadSidebarSessions(); // মেসেজ সেভ হলে সাইডবার অটো-আপডেট হবে
     } catch (error) {
         console.error("Could not connect to the database:", error);
     }
 };
+
 
 
 /* =========================================================
