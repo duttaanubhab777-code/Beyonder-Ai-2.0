@@ -54,8 +54,7 @@ body{
     background-color:var(--bg-base);
     color:var(--text-primary);
     font-family:'Inter', system-ui, sans-serif;
-    /* height:100dvh; */
- height: var(--app-height, 100dvh);
+    height:100dvh;
     display:flex;
     flex-direction:column;
     padding:14px;
@@ -97,7 +96,7 @@ background: var(--bg-panel);
 border: 1px solid var(--border-subtle);
 border-radius: 16px;
 margin-bottom: 16px;
-position: relative; /* লোগোকে ঠিক মাঝখানে রাখার জন্য খুব জরুরি */
+position: relative; /* important so the logo stays perfectly centered */
 transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 [data-theme="light"] nav {
@@ -105,7 +104,7 @@ border: none;
 border-radius: 20px;
 box-shadow: var(--neu-out);
 }
-/* লোগো ঠিক মাঝখানে ভাসমান থাকবে */
+/* keeps the logo floating exactly in the middle */
 .logo-wrapper {
 display: flex;
 align-items: center;
@@ -113,15 +112,15 @@ gap: 8px;
 position: absolute;
 left: 50%;
 transform: translateX(-50%);
-pointer-events: none; /* বাটনগুলোর কাজে যেন বাধা না দেয় */
+pointer-events: none; /* doesn't interfere with the buttons */
 }
-/* ডানদিকের বাটনগুলো পাশাপাশি এক লাইনে রাখার কড়া নির্দেশ */
+/* keep the right-side buttons in a single row, no wrapping */
 .nav-actions {
 display: flex !important;
 flex-direction: row !important;
 align-items: center !important;
 gap: 10px !important;
-flex-wrap: nowrap !important; /* নিচে নামা বন্ধ করবে */
+flex-wrap: nowrap !important; /* stop it from wrapping to a new line */
 z-index: 10;
 }
 
@@ -607,15 +606,15 @@ nav h1 span{
     display:flex;
     align-items:flex-end;
     gap:10px;
-    margin-top:auto; /* গ্যাপ ঠিক করার জন্য */
-    margin-bottom:8px; /* স্ক্রিনের নিচ থেকে একটু উপরে তোলার জন্য */
+margin-top:auto; /* fixes the gap */
+margin-bottom:8px; /* lifts it slightly above the bottom of the screen */
     padding:8px;
     background:var(--bg-panel-2);
     border:1px solid var(--border-subtle);
     border-radius:20px;
     flex-shrink:0;
     transition:background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* ডার্ক মোডে সুন্দর দেখানোর জন্য */
+box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* looks better in dark mode */
 }
 
 
@@ -754,7 +753,7 @@ body.checking-auth .chat-input-area {
     display:flex;
     align-items:center;
     justify-content:center;
-    padding:10px; /* মোবাইলে পপআপ বড় দেখানোর জন্য প্যাডিং কমানো হয়েছে */
+padding:10px; /* smaller padding so the popup looks bigger on mobile */
     background:rgba(4,5,10,0.7); 
     backdrop-filter:blur(5px);
     animation:fadeIn 0.2s ease;
@@ -762,8 +761,8 @@ body.checking-auth .chat-input-area {
 
 .modal-card{
     width:100%;
-    max-width:500px; /* চওড়া বাড়ানো হয়েছে */
-    max-height:92vh; /* উচ্চতা বাড়ানো হয়েছে */
+max-width:500px; /* widened */
+max-height:92vh; /* increased height */
     display:flex;
     flex-direction:column;
     background:var(--bg-panel);
@@ -996,7 +995,7 @@ body.checking-auth .chat-input-area {
    Chat with Admin panel (Redesigned)
    ========================================= */
 .admin-chat-body{ 
-    height: 75vh; /* চ্যাটের উচ্চতা বাড়ানো হয়েছে */
+height: 75vh; /* increased chat height */
     max-height: 650px; 
     background: var(--bg-base); 
     padding: 12px;
@@ -1017,15 +1016,15 @@ body.checking-auth .chat-input-area {
 .admin-chat-msg{
     max-width:85%;
     width:fit-content; 
-    min-width: 60px; /* মিনিমাম সাইজ কমানো হয়েছে */
-    padding:8px 12px; /* WhatsApp-এর মত টাইট প্যাডিং */
+min-width: 60px; /* reduced minimum size */
+padding:8px 12px; /* tight padding, WhatsApp-style */
     font-size:14.5px;
     line-height:1.4;
     white-space:pre-wrap;
     word-break:break-word;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15); /* সফট শ্যাডো */
+box-shadow: 0 1px 2px rgba(0,0,0,0.15); /* soft shadow */
 }
 
 .admin-chat-msg.from-user{
@@ -1035,37 +1034,32 @@ body.checking-auth .chat-input-area {
     border-radius:14px 14px 4px 14px;
 }
 /* =========================================
-অ্যাডমিনের মেসেজ - ম্যাজেন্টা/পিঙ্ক গ্রেডিয়েন্ট
+Admin message — magenta/pink gradient
 ========================================= */
 .admin-chat-msg.from-admin {
 align-self: flex-start;
-background: linear-gradient(135deg, #ec4899, #9333ea); /* পিঙ্ক থেকে বেগুনি গ্রেডিয়েন্ট */
+background: linear-gradient(135deg, #ec4899, #9333ea); /* pink-to-purple gradient */
 border: none;
 color: #ffffff;
 border-radius: 4px 14px 14px 14px;
-box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25); /* হালকা পিঙ্ক শ্যাডো */
+box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25); /* soft pink shadow */
 }
 .admin-chat-msg.from-admin .meta {
-color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
-}
-.admin-chat-msg.from-admin .meta {
-color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পের কালার সাদা */
+color: rgba(255, 255, 255, 0.85); /* timestamp color: white */
 }
 
-/* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
-
-/* CSS Magic: টাইমস্ট্যাম্পকে লেখার নিচে এবং ডানদিকে পাঠানো হয়েছে */
+/* CSS trick: places the timestamp below the text, aligned right */
 
 .admin-chat-msg .meta{
-    order: 2; /* লেখার নিচে দেখানোর জন্য */
-    align-self: flex-end; /* ডানদিকে রাখার জন্য */
+    order: 2; /* show it below the text */
+    align-self: flex-end; /* align it to the right */
     font-size: 9.5px;
     opacity: 0.65;
     margin-top: 4px;
     margin-bottom: 0;
     font-weight: 500;
     letter-spacing: 0;
-    text-transform: none; /* নরমাল ফন্ট */
+text-transform: none; /* normal font, no uppercase */
 }
 
 
@@ -1109,10 +1103,10 @@ color: rgba(255, 255, 255, 0.85); /* টাইমস্ট্যাম্পে�
 }
 @media (max-width: 480px){
 .logo-wrapper h1 {
-font-size: 0.95rem; /* ফন্ট সাইজ সামান্য ছোট করা হলো যাতে Beyonder AI এক লাইনেই ধরে যায় */
+font-size: 0.95rem; /* slightly smaller font so "Beyonder AI" fits on one line */
 }
 .logo-wrapper h1 span {
-display: inline !important; /* 'AI' লেখাটি আবার দৃশ্যমান করা হলো */
+display: inline !important; /* makes the "AI" text visible again */
 }
 .icon-btn{
 width: 32px;
