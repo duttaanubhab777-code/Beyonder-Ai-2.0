@@ -199,8 +199,8 @@ const typeWriterEffect = (element, htmlText, parentDiv) => {
             const char = plainText[i];
             i++;
 
-            let delay = 15 + Math.random() * 25;
-            if (".,!?।".includes(char)) delay += 150;
+            let delay = 8 + Math.random() * 12;
+            if (".,!?।".includes(char)) delay += 60;
 
             setTimeout(typeNextChar, delay);
         } else {
