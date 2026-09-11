@@ -52,14 +52,17 @@ themeToggleBtn.addEventListener("click", () => {
     const isLight = document.documentElement.getAttribute("data-theme") === "light";
     applyTheme(isLight ? "dark" : "light");
 });
-
 /* =========================================================
-   SIDEBAR MENU LOGIC
+   SIDEBAR MENU LOGIC (Main & History Sidebars)
    ========================================================= */
 const menuBtn = document.getElementById("menu-btn");
 const closeSidebarBtn = document.getElementById("close-sidebar-btn");
 const sidebarMenu = document.getElementById("sidebar-menu");
 const sidebarOverlay = document.getElementById("sidebar-overlay");
+
+// নতুন হিস্ট্রি সাইডবারের এলিমেন্টগুলো
+const historySidebar = document.getElementById("history-sidebar");
+const closeHistoryBtn = document.getElementById("close-history-btn");
 
 const openSidebar = () => {
     sidebarOverlay.hidden = false;
@@ -67,37 +70,47 @@ const openSidebar = () => {
         sidebarOverlay.classList.add("active");
         sidebarMenu.classList.add("open");
     }, 10);
-    
-    // সাইডবার খুললেই যেন পুরনো চ্যাটের লিস্ট আপডেট হয়ে যায়
-    loadSidebarSessions(); 
 };
 
-
+// এই ফাংশনটি এখন যেকোনো খোলা সাইডবারকে বন্ধ করে দেবে
 const closeSidebar = () => {
     sidebarOverlay.classList.remove("active");
-    sidebarMenu.classList.remove("open");
+    if (sidebarMenu) sidebarMenu.classList.remove("open");
+    if (historySidebar) historySidebar.classList.remove("open");
     setTimeout(() => { sidebarOverlay.hidden = true; }, 300);
+};
+
+// হিস্ট্রি সাইডবার খোলার জন্য নতুন ফাংশন
+const openHistorySidebar = () => {
+    if (sidebarMenu) sidebarMenu.classList.remove("open"); // মেইন সাইডবার সরিয়ে দেবে
+    sidebarOverlay.hidden = false;
+    setTimeout(() => {
+        sidebarOverlay.classList.add("active");
+        historySidebar.classList.add("open"); // হিস্ট্রি সাইডবার আনবে
+    }, 10);
+    
+    // হিস্ট্রির লিস্ট লোড করবে
+    if (typeof loadSidebarSessions === 'function') {
+        loadSidebarSessions();
+    }
 };
 
 if (menuBtn) menuBtn.addEventListener("click", openSidebar);
 if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", closeSidebar);
+if (closeHistoryBtn) closeHistoryBtn.addEventListener("click", closeSidebar);
 if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
-const historyBtn = document.getElementById("history-btn");
-if (historyBtn) {
-    historyBtn.addEventListener("click", () => {
-        if (typeof loadSidebarSessions === 'function') {
-            loadSidebarSessions();
-        }
-    });
-}
-
-
-   document.querySelectorAll('.sidebar-item').forEach(item => {
+// সাইডবারের আইটেমে ক্লিক করার লজিক
+document.querySelectorAll('.sidebar-item').forEach(item => {
     item.addEventListener('click', () => {
-        // Theme এবং History বাটনে ক্লিক করলে সাইডবার বন্ধ হবে না
-        if(item.id !== 'theme-toggle-btn' && item.id !== 'history-btn') {
-            closeSidebar();
+        if (item.id === 'theme-toggle-btn') {
+            return; // থিম বাটনে ক্লিক করলে সাইডবার বন্ধ হবে না
+        }
+        
+        if (item.id === 'history-btn') {
+            openHistorySidebar(); // হিস্ট্রি বাটনে ক্লিক করলে নতুন সাইডবারটা খুলবে
+        } else {
+            closeSidebar(); // বাকি সব বাটনে ক্লিক করলে সাইডবার পুরোপুরি বন্ধ হবে
         }
     });
 });
