@@ -261,11 +261,35 @@ const renderInstant = (element, plainText, parentDiv) => {
 
 const sendBtn = document.getElementById("send-btn");
 const newChatBtn = document.getElementById("new-chat-btn");
+const modelMenuBtn = document.getElementById("model-menu-btn");
+const modelMenu = document.getElementById("model-menu");
+let currentProvider = localStorage.getItem("beyonder-provider") || "gemini";
 
 const input = document.getElementById("user-input");
 input.addEventListener("input", () => {
     input.style.height = "auto";
     input.style.height = input.scrollHeight + "px";
+});
+
+if (modelMenuBtn) {
+    modelMenuBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // বাইরে-ক্লিক লজিকের সাথে যাতে সাথে সাথে বন্ধ না হয়ে যায়
+        modelMenu.hidden = !modelMenu.hidden;
+    });
+}
+
+document.querySelectorAll(".model-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        currentProvider = btn.dataset.provider;
+        localStorage.setItem("beyonder-provider", currentProvider);
+        modelMenu.hidden = true;
+    });
+});
+
+document.addEventListener("click", (e) => {
+    if (!modelMenu.hidden && !modelMenu.contains(e.target) && e.target !== modelMenuBtn) {
+        modelMenu.hidden = true;
+    }
 });
 
 const chat = document.getElementById("chat-area");
@@ -754,6 +778,9 @@ const getGeminiResponse = async (userText) => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
+
+               provider: currentProvider,   // 👈 এই একটা লাইন নতুন
+            
                 systemInstruction: {
                     parts: [{
                         text: `You are Beyonder AI — a friendly, smart, and helpful AI assistant.
