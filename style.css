@@ -1229,4 +1229,56 @@ font-size: 12.5px;
     .update-toast-btn{ padding:8px 12px; font-size:0.78rem; }
 }
 
-    
+    /* =========================================
+   MODEL SELECTOR BUTTON (Text + Icon)
+   ========================================= */
+#model-menu-btn {
+    width: auto !important; /* গোল আইকনের সাইজ ব্রেক করার জন্য */
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 20px; /* সুন্দর পিল-শেপ (Pill-shape) */
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    white-space: nowrap; /* লেখা যাতে দুই লাইনে না ভাঙে */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+}
+
+#model-menu-btn:hover {
+    border-color: rgba(124,108,255,0.4);
+    color: var(--accent-2);
+}
+
+#model-menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* Light Theme Support for the button */
+[data-theme="light"] #model-menu-btn {
+    border: none;
+    box-shadow: var(--neu-out-sm);
+    background: var(--bg-panel);
+}
+
+[data-theme="light"] #model-menu-btn:hover {
+    box-shadow: var(--neu-out);
+    color: var(--accent);
+}
+
+/* =========================================
+   MENU OPTIONS & CHECKMARK ALIGNMENT
+   ========================================= */
+.model-option {
+    display: flex;
+    justify-content: space-between; /* টিক মার্ক (✔) কে একদম ডানদিকে সরিয়ে দেবে */
+    align-items: center;
+    gap: 15px;
+    font-weight: 500;
+}
+
