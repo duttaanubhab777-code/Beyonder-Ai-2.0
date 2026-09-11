@@ -265,6 +265,44 @@ const modelMenuBtn = document.getElementById("model-menu-btn");
 const modelMenu = document.getElementById("model-menu");
 let currentProvider = localStorage.getItem("beyonder-provider") || "gemini";
 
+// ১. ইনপুট বক্সের পাশের বাটন আপডেট করার ফাংশন
+const updateModelButtonUI = (providerName) => {
+    if (!modelMenuBtn) return;
+    if (providerName === "gemini") {
+        modelMenuBtn.innerHTML = `✨ Gemini`;
+    } else if (providerName === "gpt-oss") {
+        modelMenuBtn.innerHTML = `⚡ GPT-OSS`;
+    } else if (providerName === "qwen") {
+        modelMenuBtn.innerHTML = `🧠 Qwen`;
+    } else if (providerName === "llama") {
+        modelMenuBtn.innerHTML = `🦙 Llama`;
+    } else {
+        modelMenuBtn.innerHTML = `✨ Gemini`;
+    }
+};
+
+// ২. মেনুর ভেতরে টিক মার্ক (✔) দেখানোর ফাংশন
+const updateMenuCheckmark = (providerName) => {
+    document.querySelectorAll(".model-option").forEach((btn) => {
+        // প্রথমে সব বাটন থেকে পুরোনো টিক মার্ক মুছে ফেলা (যদি থাকে)
+        const baseText = btn.innerHTML.replace(' <i class="fa-solid fa-check"></i>', '');
+        
+        if (btn.dataset.provider === providerName) {
+            // যেটা সিলেক্ট করা, সেটার নামের শেষে একটা টিক মার্ক আইকন যোগ করা
+            btn.innerHTML = baseText + ' <i class="fa-solid fa-check"></i>';
+            btn.style.color = "#4a90e2"; // সিলেক্টেড অপশনটা একটু ব্লু-কালার দেখাবে
+        } else {
+            // বাকি বাটনগুলো নরমাল থাকবে
+            btn.innerHTML = baseText;
+            btn.style.color = ""; 
+        }
+    });
+};
+
+// ৩. পেজ লোড হলে একবার ফাংশন দুটো চালিয়ে নেওয়া
+updateModelButtonUI(currentProvider);
+updateMenuCheckmark(currentProvider);
+
 const input = document.getElementById("user-input");
 input.addEventListener("input", () => {
     input.style.height = "auto";
@@ -273,7 +311,7 @@ input.addEventListener("input", () => {
 
 if (modelMenuBtn) {
     modelMenuBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // বাইরে-ক্লিক লজিকের সাথে যাতে সাথে সাথে বন্ধ না হয়ে যায়
+        e.stopPropagation(); 
         modelMenu.hidden = !modelMenu.hidden;
     });
 }
@@ -282,9 +320,15 @@ document.querySelectorAll(".model-option").forEach((btn) => {
     btn.addEventListener("click", () => {
         currentProvider = btn.dataset.provider;
         localStorage.setItem("beyonder-provider", currentProvider);
+        
+        // ৪. মডেলে ক্লিক করলেই নাম এবং টিক মার্ক আপডেট হবে
+        updateModelButtonUI(currentProvider); 
+        updateMenuCheckmark(currentProvider);
+        
         modelMenu.hidden = true;
     });
 });
+
 
 document.addEventListener("click", (e) => {
     if (!modelMenu.hidden && !modelMenu.contains(e.target) && e.target !== modelMenuBtn) {
