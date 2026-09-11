@@ -104,10 +104,17 @@
     <div class="chat-area" id="chat-area"></div>
 
     <div class="chat-input-area">
-        <textarea id="user-input" placeholder="Ask Beyonder" rows="1"></textarea>
-        <button id="send-btn" class="send-button" aria-label="Send message">
-            <i class="fa-solid fa-paper-plane"></i>
-        </button>
+    <button id="model-menu-btn" class="icon-btn" title="Choose AI model" type="button">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <div id="model-menu" class="model-menu" hidden>
+        <button class="model-option" data-provider="gemini">✨ Gemini</button>
+        <button class="model-option" data-provider="gpt">⚡ GPT</button>
+    </div>
+
+    <textarea id="user-input" placeholder="Ask Beyonder" rows="1"></textarea>
+    <button id="send-btn" class="send-button">...</button>
     </div>
 
     <p class="credit">Created by Anubhab Dutta & Arnab Adhikari</p>
