@@ -276,7 +276,7 @@ const updateModelButtonUI = (providerName) => {
         modelMenuBtn.innerHTML = `🧠 Qwen`;
     } else if (providerName === "groq") {
     modelMenuBtn.innerHTML = `🚀 Groq`;
-    }
+    
     } else {
         modelMenuBtn.innerHTML = `✨ Gemini`;
     }
