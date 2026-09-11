@@ -74,8 +74,7 @@
                 <i class="fa-solid fa-download"></i> 
                 <span>Install App</span>
             </button>
-          <div style="height: 1px; background: rgba(150, 150, 150, 0.2); margin: 15px 0;"></div>
-<div id="sidebar-chat-list" class="sidebar-chat-list"></div>
+          
           
         </div>
       
@@ -87,7 +86,19 @@
             </button>
         </div>
     </div>
-  
+
+
+  <!-- ================= HISTORY SIDEBAR (NEW) ================= -->
+    <div id="history-sidebar" class="sidebar-menu">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Past Chats</h2>
+            <button id="close-history-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="sidebar-content">
+            <!-- চ্যাট লিস্টগুলো এখন এই নতুন সাইডবারের ভেতরে লোড হবে -->
+            <div id="sidebar-chat-list" class="sidebar-chat-list"></div>
+        </div>
+    </div>
     
 
     <div class="chat-area" id="chat-area"></div>
