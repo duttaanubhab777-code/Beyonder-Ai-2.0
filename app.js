@@ -269,16 +269,16 @@ let currentProvider = localStorage.getItem("beyonder-provider") || "gemini";
 const updateModelButtonUI = (providerName) => {
     if (!modelMenuBtn) return;
     if (providerName === "gemini") {
-        modelMenuBtn.innerHTML = `✨ Gemini`;
+        modelMenuBtn.innerHTML = `✨ Normal`;
     } else if (providerName === "gpt-oss") {
-        modelMenuBtn.innerHTML = `⚡ GPT-OSS`;
+        modelMenuBtn.innerHTML = `⚡ Smart`;
     } else if (providerName === "qwen") {
-        modelMenuBtn.innerHTML = `🧠 Qwen`;
+        modelMenuBtn.innerHTML = `🧠 Thinker`;
     } else if (providerName === "groq") {
-    modelMenuBtn.innerHTML = `🚀 Groq`;
+    modelMenuBtn.innerHTML = `🚀 speedy`;
     
     } else {
-        modelMenuBtn.innerHTML = `✨ Gemini`;
+        modelMenuBtn.innerHTML = `✨ Normal`;
     }
 };
 
