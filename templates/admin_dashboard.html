@@ -1,146 +1,1023 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard — Beyonder AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+    :root {
+        --bg-body: #f3f4f6; /* Very light soft gray matching the image */
+        --bg-surface: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        
+        /* Sidebar active color (Dark like the image) */
+        --sidebar-active-bg: #0f172a;
+        --sidebar-active-text: #ffffff;
+        
+        /* Badge Colors */
+        --success-bg: #dcfce7;
+        --success-text: #15803d;
+        --danger-bg: #fee2e2;
+        --danger-text: #b91c1c;
+        --info-bg: #dbeafe;
+        --info-text: #1d4ed8;
+        --warning-bg: #fef9c3;
+        --warning-text: #a16207;
+        --purple-bg: #f3e8ff;
+        --purple-text: #7e22ce;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    
     body {
-        background: #0d1117;
-        color: #e6e6e6;
-        font-family: 'Segoe UI', sans-serif;
-        margin: 0;
-        padding: 30px;
-    }
-    h1 { display: flex; align-items: center; gap: 10px; }
-    .logout {
-        float: right;
-        color: #f87171;
-        text-decoration: none;
-    }
-    .stats {
+        background-color: var(--bg-body);
+        color: var(--text-main);
         display: flex;
-        gap: 20px;
-        margin: 20px 0 40px;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
-    .card {
-        background: #161b22;
-        padding: 20px 30px;
-        border-radius: 10px;
-        text-align: center;
+
+    /* ================= SIDEBAR LAYOUT ================= */
+    .sidebar {
+        width: 260px;
+        background-color: var(--bg-surface);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 24px 20px;
+        position: fixed;
+        height: 100vh;
+        z-index: 50;
     }
-    .card .num { font-size: 28px; font-weight: bold; }
-    .card .label { color: #8b949e; font-size: 14px; }
-    table {
-        width: 100%;
-        border-collapse: collapse;
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-main);
         margin-bottom: 40px;
-        background: #161b22;
-        border-radius: 10px;
-        overflow: hidden;
+        padding-left: 8px;
     }
-    th, td {
+    
+    .brand svg { width: 28px; height: 28px; color: var(--primary); }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         padding: 12px 16px;
-        text-align: left;
-        border-bottom: 1px solid #30363d;
+        border-radius: 12px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s ease;
     }
-    th {
-        color: #8b949e;
-        font-size: 13px;
-        text-transform: uppercase;
+
+    .nav-link svg { width: 20px; height: 20px; stroke-width: 2; transition: all 0.2s ease; }
+
+    .nav-link:hover {
+        background-color: #f1f5f9;
+        color: var(--text-main);
     }
-    .success { color: #4ade80; background: #14331f; padding: 3px 10px; border-radius: 10px; font-size: 12px; }
-    .failed { color: #f87171; background: #331414; padding: 3px 10px; border-radius: 10px; font-size: 12px; }
-    .del-btn {
-        background: #b91c1c;
+
+    /* EXACTLY like the image: Active state is dark */
+    .nav-link.active {
+        background-color: var(--sidebar-active-bg);
+        color: var(--sidebar-active-text);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+    }
+
+    .logout-btn {
+        margin-top: auto;
+        color: var(--danger-text);
+        background-color: var(--danger-bg);
+    }
+    .logout-btn:hover { background-color: #fca5a5; color: #7f1d1d; }
+
+    /* ================= MAIN CONTENT ================= */
+    .main-wrapper {
+        flex: 1;
+        margin-left: 260px; /* offset for sidebar */
+        padding: 32px 40px;
+        max-width: 1200px;
+    }
+
+    .top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 32px;
+    }
+
+    .top-header h1 { font-size: 24px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+    .top-header p { color: var(--text-muted); font-size: 14px; }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .profile-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-surface);
+        padding: 8px 16px;
+        border-radius: 30px;
+        border: 1px solid var(--border-color);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* ================= STAT CARDS ================= */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: var(--bg-surface);
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* The Solid Colored Card (like the blue one in reference) */
+    .stat-card.solid-card {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
         border: none;
         color: white;
-        padding: 6px 10px;
-        border-radius: 6px;
-        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
     }
-    .empty { color: #8b949e; padding: 16px; }
+    .stat-card.solid-card .label, .stat-card.solid-card .value { color: white; }
+
+    .stat-card .label { font-size: 13px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 32px; font-weight: 700; color: var(--text-main); }
+    
+    /* Small trend highlights inside cards */
+    .trend { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-top: auto; align-self: flex-start;}
+    .trend-green { background: var(--success-bg); color: var(--success-text); }
+    .trend-red { background: var(--danger-bg); color: var(--danger-text); }
+
+    /* ================= SECTION HEADERS & TABLES ================= */
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 40px 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .table-card {
+        background: var(--bg-surface);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+        margin-bottom: 40px;
+    }
+
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 16px 24px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    th {
+        background-color: #f8fafc;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #f8fafc; }
+    
+    .td-primary { font-weight: 600; color: var(--text-main); }
+    .td-secondary { color: var(--text-muted); }
+
+    /* ================= COLORFUL BADGES ================= */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success-text); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger-text); }
+    .badge-admin { background: var(--purple-bg); color: var(--purple-text); }
+    .badge-ai { background: var(--info-bg); color: var(--info-text); }
+    .badge-online { background: var(--success-bg); color: var(--success-text); }
+    .badge-offline { background: var(--bg-body); color: var(--text-muted); }
+
+    .unread-indicator {
+        background: #ef4444;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 8px;
+        box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+    }
+
+    /* ================= BUTTONS ================= */
+    .btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
+    }
+    .btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        box-shadow: none;
+    }
+    .btn-outline:hover { background: #f1f5f9; }
+
+    .btn-danger { background: var(--danger-bg); color: var(--danger-text); box-shadow: none; }
+    .btn-danger:hover { background: #fca5a5; color: #7f1d1d; }
+
+    /* ================= CHAT PANELS ================= */
+    .chat-panel {
+        display: none;
+        background: var(--bg-surface);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+        padding: 24px;
+        margin-bottom: 40px;
+    }
+    .chat-panel.open { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .chat-box {
+        max-height: 400px;
+        overflow-y: auto;
+        background: var(--bg-body);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    /* WhatsApp/Telegram style chat bubbles */
+    .msg-bubble {
+        padding: 12px 16px;
+        border-radius: 16px;
+        max-width: 75%;
+        font-size: 14px;
+        line-height: 1.5;
+        position: relative;
+    }
+    .msg-meta { font-size: 11px; margin-bottom: 4px; font-weight: 600; opacity: 0.7; }
+    
+    .msg-user { 
+        background: #ffffff; 
+        border: 1px solid var(--border-color);
+        align-self: flex-end; 
+        border-bottom-right-radius: 4px;
+    }
+    .msg-ai { 
+        background: var(--info-bg); 
+        color: #0f172a;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+    .msg-admin { 
+        background: var(--sidebar-active-bg); 
+        color: white;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+
+    .compose-area { display: flex; gap: 12px; }
+    .compose-area textarea {
+        flex: 1;
+        min-height: 50px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        font-size: 14px;
+        outline: none;
+        resize: vertical;
+        transition: border 0.2s;
+    }
+    .compose-area textarea:focus { border-color: var(--primary); }
+
+    .empty-state { padding: 32px; text-align: center; color: var(--text-muted); font-style: italic; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        body { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; position: relative; padding: 16px; border-right: none; border-bottom: 1px solid var(--border-color); flex-direction: row; align-items: center; justify-content: space-between;}
+        .brand { margin-bottom: 0; }
+        .nav-menu { display: none; /* Hide full menu on mobile for simplicity, could use a dropdown */ }
+        .main-wrapper { margin-left: 0; padding: 20px; }
+        .top-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    }
 </style>
 </head>
 <body>
-    <a href="/admin/logout" class="logout">Logout</a>
-    <h1>👤 Admin Dashboard</h1>
 
-    <div class="stats">
-        <div class="card">
-            <div class="num">{{ users|length }}</div>
-            <div class="label">Total Users</div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Beyonder AI
         </div>
-        <div class="card">
-            <div class="num">{{ chats|length }}</div>
-            <div class="label">Chat Messages (recent)</div>
+        
+        <nav class="nav-menu">
+            <!-- Nav links match section IDs -->
+            <a href="#overview" class="nav-link active" id="nav-overview">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                Overview
+            </a>
+            <a href="#live-connections" class="nav-link" id="nav-live-connections">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Live Connections
+            </a>
+            <a href="#support-matrix" class="nav-link" id="nav-support-matrix">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                Support Matrix
+            </a>
+            <a href="#user-database" class="nav-link" id="nav-user-database">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                User Database
+            </a>
+            <a href="#stream-log" class="nav-link" id="nav-stream-log">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                Stream Log
+            </a>
+            <a href="#auth-logs" class="nav-link" id="nav-auth-logs">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                Auth Logs
+            </a>
+
+            <a href="/admin/logout" class="nav-link logout-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                Secure Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-wrapper">
+        
+        <div class="top-header" id="overview">
+            <div>
+                <h1>Welcome Back, Admin</h1>
+                <p>System overview and live control panel</p>
+            </div>
+            <div class="header-actions">
+                <div class="profile-pill">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    System Admin
+                </div>
+            </div>
         </div>
-        <div class="card">
-            <div class="num">{{ logs|length }}</div>
-            <div class="label">Login Attempts (recent)</div>
+
+        <!-- STATS GRID -->
+        <div class="stats-grid">
+            <div class="stat-card solid-card">
+                <div class="label">Total Explorers</div>
+                <div class="value">{{ users|length }}</div>
+                <div class="trend" style="background: rgba(255,255,255,0.2); color:white;">Verified</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Active Now</div>
+                <div class="value" id="online-count">{{ online_count }}</div>
+                <div class="trend trend-green">● Live</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">AI Interactions</div>
+                <div class="value">{{ chats|length }}</div>
+                <div class="trend" style="background: var(--info-bg); color: var(--info-text);">Recent</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Unread Signals</div>
+                <div class="value">{{ unread_total }}</div>
+                <div class="trend trend-red" id="unread-status">Needs Action</div>
+            </div>
         </div>
-    </div>
 
-    <h2>Registered Users</h2>
-    {% if users %}
-    <table>
-        <tr><th>Name</th><th>Email</th><th>Created</th><th>Last Login</th><th></th></tr>
-        {% for u in users %}
-        <tr>
-            <td>{{ u.name }}</td>
-            <td>{{ u.email }}</td>
-            <td>{{ u.created_at|datetimeformat }}</td>
-            <td>{{ u.last_login_at|datetimeformat if u.last_login_at else "-" }}</td>
-            <td>
-                <form method="POST" action="/admin/delete-user" style="margin:0;">
-                    <input type="hidden" name="email" value="{{ u.email }}">
-                    <button class="del-btn" type="submit">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <div class="empty">কোনো ইউজার নেই এখনো।</div>
-    {% endif %}
+        <!-- LIVE CONNECTIONS -->
+        <h2 class="section-title" id="live-connections">🟢 Live Connections</h2>
+        <div class="table-card">
+            <table id="online-table">
+                <tr><th>Identity</th><th>Email</th><th>Last Signal</th><th>Action</th></tr>
+                <tr><td colspan="4" class="empty-state">Scanning network...</td></tr>
+            </table>
+        </div>
 
-    <h2>Chat History (সব ইউজারের, সাম্প্রতিক ৫০০টা)</h2>
-    {% if chats %}
-    <table>
-        <tr><th>Email</th><th>User Message</th><th>AI Response</th><th>Time</th></tr>
-        {% for c in chats %}
-        <tr>
-            <td>{{ c.user_email }}</td>
-            <td>{{ c.user_message }}</td>
-            <td>{{ c.ai_response }}</td>
-            <td>{{ c.timestamp|datetimeformat }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <div class="empty">কোনো চ্যাট হিস্ট্রি নেই এখনো।</div>
-    {% endif %}
+        <!-- LIVE CHAT INJECT PANEL -->
+        <div id="live-panel" class="chat-panel">
+            <div class="panel-header">
+                <h3 style="font-size: 16px; font-weight: 600;" id="live-panel-title">Neural Intercept</h3>
+                <button class="btn btn-outline" onclick="closeLivePanel()">✕ Close</button>
+            </div>
+            <div id="live-chat-log" class="chat-box"></div>
+            <div class="compose-area">
+                <textarea id="admin-message-input" placeholder="Inject message silently into this user's stream..."></textarea>
+                <button class="btn" id="send-message-btn" onclick="sendAdminMessage()">Inject</button>
+            </div>
+            <div style="font-size:12px; margin-top:8px; color:var(--text-muted);" id="send-status"></div>
+        </div>
 
-    <h2>Login Attempts</h2>
-    {% if logs %}
-    <table>
-        <tr><th>Email</th><th>IP</th><th>Time</th><th>Status</th></tr>
-        {% for l in logs %}
-        <tr>
-            <td>{{ l.user_email }}</td>
-            <td>{{ l.ip_address }}</td>
-            <td>{{ l.timestamp|datetimeformat }}</td>
-            <td>
-                {% if l.success %}
-                <span class="success">Success</span>
-                {% else %}
-                <span class="failed">Failed</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <div class="empty">কোনো লগইন লগ নেই এখনো।</div>
-    {% endif %}
+        <!-- DIRECT SUPPORT MESSAGES -->
+        <h2 class="section-title" id="support-matrix">💬 Support Matrix <span id="unread-badge-inline"></span></h2>
+        <div class="table-card">
+            <table id="chat-threads-table">
+                <tr><th>Subject</th><th>Email</th><th>Last Transmission</th><th>Timestamp</th><th>Action</th></tr>
+                <tr><td colspan="5" class="empty-state">Syncing inbox...</td></tr>
+            </table>
+        </div>
+
+        <!-- DIRECT CHAT PANEL -->
+        <div id="admin-chat-panel" class="chat-panel">
+            <div class="panel-header">
+                <h3 style="font-size: 16px; font-weight: 600;" id="admin-chat-panel-title">Direct Comms</h3>
+                <button class="btn btn-outline" onclick="closeAdminChatPanel()">✕ Close</button>
+            </div>
+            <div id="admin-chat-log" class="chat-box"></div>
+            <div class="compose-area">
+                <textarea id="admin-chat-input" placeholder="Draft reply..."></textarea>
+                <button class="btn" id="admin-chat-send-btn" onclick="sendAdminChatReply()">Send</button>
+            </div>
+            <div style="font-size:12px; margin-top:8px; color:var(--text-muted);" id="admin-chat-status"></div>
+        </div>
+
+        <!-- USER DATABASE -->
+        <h2 class="section-title" id="user-database">👥 User Database</h2>
+        <div class="table-card">
+            {% if users %}
+            <table>
+                <tr><th>Identity</th><th>Email</th><th>Created Epoch</th><th>Last Auth</th><th>Protocols</th></tr>
+                {% for u in users %}
+                <tr>
+                    <td class="td-primary">{{ u.name }}</td>
+                    <td class="td-secondary">{{ u.email }}</td>
+                    <td class="td-secondary">{{ u.created_at|datetimeformat }}</td>
+                    <td class="td-secondary">{{ u.last_login_at|datetimeformat if u.last_login_at else "-" }}</td>
+                    <td style="display:flex; gap:8px;">
+                        <button class="btn" onclick="openLivePanel('{{ u.email }}', '{{ u.name }}')">Spy</button>
+                        <button class="btn" style="background:var(--purple-bg); color:var(--purple-text);" onclick="loginAsUser('{{ u.email }}')">Login As</button>
+                        <form method="POST" action="/admin/delete-user" style="margin:0;" onsubmit="return confirm('Purge user and all records?');">
+                            <input type="hidden" name="email" value="{{ u.email }}">
+                            <button class="btn btn-danger" type="submit">Purge</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="empty-state">Database void. No users found.</div>
+            {% endif %}
+        </div>
+
+        <!-- LOGIN-AS-USER RESULT (shown after clicking "Login As" above) -->
+        <div id="impersonate-box" style="display:none; margin-bottom:24px; padding:16px 18px; border-radius:12px; background:var(--purple-bg); border:1px solid #d8b4fe;">
+            <div style="font-weight:600; color:var(--purple-text); margin-bottom:6px;">🔑 Login-as-user link generated</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">
+                Opens Beyonder AI already signed in as this user. Anyone with this link can access that account, so only share it if you mean to — it's meant for support use, not for handing out.
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <input id="impersonate-link" type="text" readonly style="flex:1; min-width:220px; padding:9px 12px; border-radius:8px; border:1px solid var(--border-color); font-size:12.5px; background:#fff;">
+                <button class="btn" onclick="copyImpersonateLink()">Copy Link</button>
+                <a id="impersonate-open" href="#" target="_blank" rel="noopener"><button class="btn">Open in New Tab</button></a>
+            </div>
+        </div>
+
+        <!-- DATA & MAINTENANCE -->
+        <h2 class="section-title" id="data-maintenance">🧹 Data & Maintenance</h2>
+        <div class="table-card" style="padding:20px;">
+            <div style="font-size:14px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
+                A scheduled task (<code>cleanup_old_data.py</code>) already removes chat &amp; login records older than
+                <strong>180 days (~6 months)</strong> once a day automatically — <strong>user accounts are never deleted</strong> by this,
+                only old activity logs. Use the button below to run that same cleanup manually right now, if needed.
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-danger" onclick="purgeOldData()">Run Cleanup Now (180+ days)</button>
+                <span id="purge-status" style="font-size:13px; color:var(--text-muted);"></span>
+            </div>
+        </div>
+
+        <!-- DANGER ZONE — KILL SWITCH -->
+        <h2 class="section-title" id="danger-zone" style="color:#dc2626;">☠️ Danger Zone</h2>
+        <div class="table-card" style="padding:20px; border:2px solid #dc2626;">
+            <div style="font-size:14px; color:var(--text-muted); margin-bottom:16px; line-height:1.6;">
+                <strong style="color:#dc2626;">This permanently deletes the entire database — every user account, every chat,
+                every login record. A to Z, one click.</strong> There is no undo and no backup made automatically.
+                This is gated behind a separate <em>kill switch password</em> (set as <code>KILL_SWITCH_PASSWORD</code> in
+                <code>config.py</code> — deliberately different from your admin login password) plus a typed confirmation phrase,
+                so it can never fire by accident.
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; max-width:420px;">
+                <input id="kill-switch-password" type="password" placeholder="Kill switch password" class="btn" style="text-align:left; background:#fff; color:#111; cursor:text;">
+                <input id="kill-switch-confirm" type="text" placeholder='Type: DELETE EVERYTHING' class="btn" style="text-align:left; background:#fff; color:#111; cursor:text;">
+                <button class="btn btn-danger" style="background:#dc2626; color:#fff; font-weight:700;" onclick="triggerKillSwitch()">
+                    WIPE ENTIRE DATABASE
+                </button>
+                <span id="kill-switch-status" style="font-size:13px; color:var(--text-muted);"></span>
+            </div>
+        </div>
+
+        <!-- STREAM LOG -->
+        <h2 class="section-title" id="stream-log">📜 AI Stream Log (Recent)</h2>
+        <div class="table-card">
+            {% if chats %}
+            <table>
+                <tr><th>Origin</th><th>Prompt / Input</th><th>AI Output</th><th>Node</th><th>Timestamp</th></tr>
+                {% for c in chats %}
+                <tr>
+                    <td class="td-primary">{{ c.user_email }}</td>
+                    <td class="td-secondary" style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ c.user_message }}">{{ c.user_message }}</td>
+                    <td class="td-secondary" style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ c.ai_response }}">{{ c.ai_response }}</td>
+                    <td>
+                        {% if c.source == 'admin' %}
+                        <span class="badge badge-admin">Admin</span>
+                        {% else %}
+                        <span class="badge badge-ai">AI</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-secondary" style="font-size:12px;">{{ c.timestamp|datetimeformat }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="empty-state">No stream logs available.</div>
+            {% endif %}
+        </div>
+
+        <!-- AUTH LOGS -->
+        <h2 class="section-title" id="auth-logs">🛡️ Authentication Logs</h2>
+        <div class="table-card">
+            {% if logs %}
+            <table>
+                <tr><th>Target Email</th><th>IP Vector</th><th>Timestamp</th><th>Status</th></tr>
+                {% for l in logs %}
+                <tr>
+                    <td class="td-primary">{{ l.user_email }}</td>
+                    <td class="td-secondary" style="font-family:monospace;">{{ l.ip_address }}</td>
+                    <td class="td-secondary" style="font-size:12px;">{{ l.timestamp|datetimeformat }}</td>
+                    <td>
+                        {% if l.success %}
+                        <span class="badge badge-success">Granted</span>
+                        {% else %}
+                        <span class="badge badge-danger">Denied</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <div class="empty-state">No security logs recorded.</div>
+            {% endif %}
+        </div>
+
+    </main>
+
+    <!-- Script Logic (Fully Preserved) -->
+    <script>
+        const ONLINE_POLL_MS = 5000;
+        const LIVE_CHAT_POLL_MS = 3000;
+
+        let currentLiveEmail = null;
+        let liveChatPollTimer = null;
+
+        // ----- SCROLL SPY FOR SIDEBAR -----
+        const sections = document.querySelectorAll('.section-title, .top-header');
+        const navLinks = document.querySelectorAll('.nav-link:not(.logout-btn)');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) { current = section.getAttribute('id'); }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) { link.classList.add('active'); }
+            });
+        });
+        // ----------------------------------
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str ?? '';
+            return div.innerHTML;
+        }
+
+        function formatIST(ts) {
+            return new Date(ts * 1000).toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: true
+            }) + ' IST';
+        }
+
+        function formatTimeAgo(ts) {
+            const seconds = Math.max(0, (Date.now() / 1000) - ts);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            return `${hours}h ago`;
+        }
+
+        async function refreshOnlineUsers() {
+            try {
+                const res = await fetch('/admin/api/online-users');
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                document.getElementById('online-count').textContent = data.count;
+
+                const table = document.getElementById('online-table');
+                if (!data.online_users.length) {
+                    table.innerHTML = '<tr><th>Identity</th><th>Email</th><th>Last Signal</th><th>Action</th></tr>' +
+                        '<tr><td colspan="4" class="empty-state">No live connections.</td></tr>';
+                    return;
+                }
+
+                let rows = '<tr><th>Identity</th><th>Email</th><th>Last Signal</th><th>Action</th></tr>';
+                data.online_users.forEach(u => {
+                    rows += `<tr>
+                        <td class="td-primary">${escapeHtml(u.name)}</td>
+                        <td>${escapeHtml(u.email)} <span class="badge badge-online" style="margin-left:6px;">Live</span></td>
+                        <td class="td-secondary">${formatTimeAgo(u.last_seen)}</td>
+                        <td><button class="btn" onclick="openLivePanel('${escapeHtml(u.email)}', '${escapeHtml(u.name)}')">Spy</button></td>
+                    </tr>`;
+                });
+                table.innerHTML = rows;
+            } catch (e) { console.error('Failed to refresh online users:', e); }
+        }
+
+        function openLivePanel(email, name) {
+            currentLiveEmail = email;
+            document.getElementById('live-panel-title').textContent = `Neural Intercept — ${name} (${email})`;
+            document.getElementById('live-panel').classList.add('open');
+            document.getElementById('send-status').textContent = '';
+            refreshLiveChat();
+            if (liveChatPollTimer) clearInterval(liveChatPollTimer);
+            liveChatPollTimer = setInterval(refreshLiveChat, LIVE_CHAT_POLL_MS);
+            document.getElementById('live-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function closeLivePanel() {
+            currentLiveEmail = null;
+            document.getElementById('live-panel').classList.remove('open');
+            if (liveChatPollTimer) clearInterval(liveChatPollTimer);
+        }
+
+        async function refreshLiveChat() {
+            if (!currentLiveEmail) return;
+            try {
+                const res = await fetch(`/admin/api/user-chats/${encodeURIComponent(currentLiveEmail)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const log = document.getElementById('live-chat-log');
+                const wasScrolledToBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 20;
+
+                log.innerHTML = data.chats.map(c => {
+                    if (c.source === 'admin') {
+                        return `<div class="msg-bubble msg-admin">
+                            <div class="msg-meta">Admin Override · ${formatIST(c.timestamp)}</div>
+                            ${escapeHtml(c.ai_response)}
+                        </div>`;
+                    }
+                    return `
+                        <div class="msg-bubble msg-user">
+                            <div class="msg-meta" style="color: var(--text-muted);">User Input · ${formatIST(c.timestamp)}</div>
+                            ${escapeHtml(c.user_message)}
+                        </div>
+                        <div class="msg-bubble msg-ai">
+                            <div class="msg-meta">Beyonder Core Node</div>
+                            ${escapeHtml(c.ai_response)}
+                        </div>`;
+                }).join('');
+
+                if (wasScrolledToBottom) log.scrollTop = log.scrollHeight;
+            } catch (e) { console.error('Failed to refresh live chat:', e); }
+        }
+
+        async function sendAdminMessage() {
+            if (!currentLiveEmail) return;
+            const input = document.getElementById('admin-message-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const btn = document.getElementById('send-message-btn');
+            const status = document.getElementById('send-status');
+            btn.disabled = true;
+            status.textContent = 'Injecting...';
+
+            try {
+                const res = await fetch('/admin/api/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentLiveEmail, message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    input.value = '';
+                    status.textContent = 'Injection Successful.';
+                    status.style.color = "var(--success-text)";
+                    refreshLiveChat();
+                } else {
+                    status.textContent = data.message || 'Injection Failed.';
+                    status.style.color = "var(--danger-text)";
+                }
+            } catch (e) {
+                status.textContent = 'Network Error.';
+                status.style.color = "var(--danger-text)";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ================= DIRECT USER <-> ADMIN MESSAGES =================
+        const CHAT_THREADS_POLL_MS = 5000;
+        const ADMIN_CHAT_POLL_MS = 3000;
+        let currentAdminChatEmail = null;
+        let adminChatPollTimer = null;
+
+        async function refreshChatThreads() {
+            try {
+                const res = await fetch('/admin/api/admin-chat-threads');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const totalUnread = data.threads.reduce((sum, t) => sum + t.unread_count, 0);
+                const statusEl = document.getElementById('unread-status');
+                if (statusEl) {
+                    statusEl.textContent = totalUnread > 0 ? "Needs Action" : "All Clear";
+                    statusEl.className = totalUnread > 0 ? "trend trend-red" : "trend trend-green";
+                }
+                
+                document.getElementById('unread-badge-inline').innerHTML =
+                    totalUnread ? `<span class="unread-indicator">${totalUnread} New</span>` : '';
+
+                const table = document.getElementById('chat-threads-table');
+                if (!data.threads.length) {
+                    table.innerHTML = '<tr><th>Subject</th><th>Email</th><th>Last Transmission</th><th>Timestamp</th><th>Action</th></tr>' +
+                        '<tr><td colspan="5" class="empty-state">Inbox is empty.</td></tr>';
+                    return;
+                }
+
+                let rows = '<tr><th>Subject</th><th>Email</th><th>Last Transmission</th><th>Timestamp</th><th>Action</th></tr>';
+                data.threads.forEach(t => {
+                    const preview = (t.last_message || '').slice(0, 50) + (t.last_message && t.last_message.length > 50 ? '...' : '');
+                    const prefix = t.last_sender === 'admin' ? '<span style="color:var(--primary); font-weight:600;">You:</span> ' : '<span style="color:var(--text-main); font-weight:600;">Client:</span> ';
+                    rows += `<tr>
+                        <td class="td-primary">${escapeHtml(t.name)} ${t.unread_count ? `<span class="unread-indicator">${t.unread_count}</span>` : ''}</td>
+                        <td class="td-secondary">${escapeHtml(t.email)}</td>
+                        <td style="font-size:14px; color:var(--text-muted);">${prefix}${escapeHtml(preview)}</td>
+                        <td class="td-secondary" style="font-size:12px;">${formatIST(t.last_timestamp)}</td>
+                        <td><button class="btn" onclick="openAdminChatPanel('${escapeHtml(t.email)}', '${escapeHtml(t.name)}')">Decrypt</button></td>
+                    </tr>`;
+                });
+                table.innerHTML = rows;
+            } catch (e) { console.error('Failed to refresh chat threads:', e); }
+        }
+
+        function openAdminChatPanel(email, name) {
+            currentAdminChatEmail = email;
+            document.getElementById('admin-chat-panel-title').textContent = `Comms Link — ${name} (${email})`;
+            document.getElementById('admin-chat-panel').classList.add('open');
+            document.getElementById('admin-chat-status').textContent = '';
+            refreshAdminChatPanel();
+            if (adminChatPollTimer) clearInterval(adminChatPollTimer);
+            adminChatPollTimer = setInterval(refreshAdminChatPanel, ADMIN_CHAT_POLL_MS);
+            document.getElementById('admin-chat-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function closeAdminChatPanel() {
+            currentAdminChatEmail = null;
+            document.getElementById('admin-chat-panel').classList.remove('open');
+            if (adminChatPollTimer) clearInterval(adminChatPollTimer);
+            refreshChatThreads();
+        }
+
+        async function refreshAdminChatPanel() {
+            if (!currentAdminChatEmail) return;
+            try {
+                const res = await fetch(`/admin/api/admin-chat/${encodeURIComponent(currentAdminChatEmail)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const log = document.getElementById('admin-chat-log');
+                const wasScrolledToBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 20;
+
+                log.innerHTML = data.messages.map(m => `
+                    <div class="msg-bubble ${m.sender === 'admin' ? 'msg-admin' : 'msg-user'}">
+                        <div class="msg-meta">${m.sender === 'admin' ? 'HQ (You)' : 'Field Client'} · ${formatIST(m.timestamp)}</div>
+                        ${escapeHtml(m.message)}
+                    </div>`).join('');
+
+                if (wasScrolledToBottom || !log.dataset.opened) {
+                    log.scrollTop = log.scrollHeight;
+                    log.dataset.opened = '1';
+                }
+            } catch (e) { console.error('Failed to refresh direct chat:', e); }
+        }
+
+        async function sendAdminChatReply() {
+            if (!currentAdminChatEmail) return;
+            const input = document.getElementById('admin-chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const btn = document.getElementById('admin-chat-send-btn');
+            const status = document.getElementById('admin-chat-status');
+            btn.disabled = true;
+            status.textContent = 'Transmitting...';
+
+            try {
+                const res = await fetch('/admin/api/admin-chat/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentAdminChatEmail, message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    input.value = '';
+                    status.textContent = 'Transmission delivered.';
+                    status.style.color = "var(--success-text)";
+                    refreshAdminChatPanel();
+                } else {
+                    status.textContent = data.message || 'Transmission failed.';
+                    status.style.color = "var(--danger-text)";
+                }
+            } catch (e) {
+                status.textContent = 'Network error.';
+                status.style.color = "var(--danger-text)";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ================= LOGIN-AS-USER =================
+        // Edit this if your GitHub Pages frontend isn't at the site root
+        // (e.g. "https://yourname.github.io/your-repo-name").
+        const FRONTEND_BASE_URL = "https://duttaanubhab777-code.github.io";
+
+        async function loginAsUser(email) {
+            if (!confirm(`Generate a login-as-user link for ${email}? This gives full access to their account.`)) return;
+            try {
+                const res = await fetch('/admin/api/login-as-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    alert(data.message || 'Could not generate login link.');
+                    return;
+                }
+                const link = `${FRONTEND_BASE_URL}/index.html?admin_token=${encodeURIComponent(data.token)}`;
+                document.getElementById('impersonate-link').value = link;
+                document.getElementById('impersonate-open').href = link;
+                document.getElementById('impersonate-box').style.display = 'block';
+                document.getElementById('impersonate-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (e) {
+                alert('Network error while generating login link.');
+            }
+        }
+
+        function copyImpersonateLink() {
+            const input = document.getElementById('impersonate-link');
+            input.select();
+            navigator.clipboard.writeText(input.value).catch(() => document.execCommand('copy'));
+        }
+
+        // ================= DATA & MAINTENANCE =================
+        async function purgeOldData() {
+            if (!confirm('Delete all chat & login records older than 180 days? User accounts are never affected. This cannot be undone.')) return;
+            const status = document.getElementById('purge-status');
+            status.textContent = 'Running cleanup...';
+            try {
+                const res = await fetch('/admin/api/purge-old-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ days: 180 })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const d = data.deleted;
+                    status.textContent = `Done — removed ${d.chat_history_deleted} chat rows, ${d.admin_chat_deleted} admin-chat rows, ${d.login_logs_deleted} old login logs.`;
+                    status.style.color = "var(--success-text)";
+                } else {
+                    status.textContent = data.message || 'Cleanup failed.';
+                    status.style.color = "var(--danger-text)";
+                }
+            } catch (e) {
+                status.textContent = 'Network error during cleanup.';
+                status.style.color = "var(--danger-text)";
+            }
+        }
+
+        // ================= DANGER ZONE — KILL SWITCH =================
+        async function triggerKillSwitch() {
+            const password = document.getElementById('kill-switch-password').value;
+            const confirmText = document.getElementById('kill-switch-confirm').value.trim();
+            const status = document.getElementById('kill-switch-status');
+
+            if (confirmText !== 'DELETE EVERYTHING') {
+                status.textContent = 'Type "DELETE EVERYTHING" exactly in the confirm box first.';
+                status.style.color = '#dc2626';
+                return;
+            }
+            if (!password) {
+                status.textContent = 'Enter the kill switch password.';
+                status.style.color = '#dc2626';
+                return;
+            }
+            if (!confirm('This will permanently delete EVERY user, EVERY chat, and EVERY login record. There is no undo. Are you absolutely sure?')) {
+                return;
+            }
+            if (!confirm('Really sure? This cannot be reversed. Click OK to wipe the entire database now.')) {
+                return;
+            }
+
+            status.textContent = 'Wiping database...';
+            status.style.color = 'var(--text-muted)';
+            try {
+                const res = await fetch('/admin/api/kill-switch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, confirm_text: confirmText })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    status.textContent = data.message;
+                    status.style.color = '#dc2626';
+                    alert('Database wiped. You will now be returned to the admin login screen.');
+                    window.location.href = '/admin';
+                } else {
+                    status.textContent = data.message || 'Kill switch failed.';
+                    status.style.color = '#dc2626';
+                }
+            } catch (e) {
+                status.textContent = 'Network error while triggering kill switch.';
+                status.style.color = '#dc2626';
+            }
+        }
+
+        refreshOnlineUsers();
+        setInterval(refreshOnlineUsers, ONLINE_POLL_MS);
+        refreshChatThreads();
+        setInterval(refreshChatThreads, CHAT_THREADS_POLL_MS);
+    </script>
 </body>
 </html>
