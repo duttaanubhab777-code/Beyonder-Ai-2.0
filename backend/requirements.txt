@@ -1,0 +1,4 @@
+Flask>=3.0,<4
+flask-cors>=4.0
+Werkzeug>=3.0
+pywebpush>=2.0

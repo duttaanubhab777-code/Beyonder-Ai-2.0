@@ -1,0 +1,47 @@
+/* =========================================
+   Light mode icon glow (kept as-is, icons unchanged)
+   ========================================= */
+
+[data-theme="light"] .logo-circle {
+    background: radial-gradient(circle at 35% 30%, rgba(90, 50, 250, 0.15), rgba(0, 123, 153, 0.1) 70%);
+    border: none;
+    box-shadow: var(--neu-out-sm), 0 0 14px rgba(90, 50, 250, 0.25);
+}
+
+[data-theme="light"] #logo i {
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(90, 50, 250, 0.55);
+}
+
+[data-theme="light"] .msg-logo {
+    background: var(--bg-panel);
+    border: none;
+    color: var(--accent);
+    box-shadow: var(--neu-out-sm);
+}
+
+[data-theme="light"] .msg-logo i {
+    text-shadow: 0 0 6px rgba(90, 50, 250, 0.4);
+  }
+
+
+
+body.checking-auth .chat-area,
+body.checking-auth .chat-input-area {
+    visibility: hidden;
+}
+
+/* =========================================
+   Install App button — small accent so it stands out from the
+   neutral icon buttons around it
+   ========================================= */
+.install-btn{
+    color:var(--accent-2);
+    border-color:rgba(0,217,255,0.35);
+}
+.install-btn:hover{
+    color:#fff;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color:transparent;
+}
+

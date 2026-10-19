@@ -1,0 +1,40 @@
+/* =========================================
+NAVBAR CSS FIX (Replace your existing nav CSS with this)
+=========================================  */
+nav {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 12px 16px;
+background: var(--bg-panel);
+border: 1px solid var(--border-subtle);
+border-radius: 16px;
+margin-bottom: 16px;
+position: relative; /* important so the logo stays perfectly centered */
+transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+[data-theme="light"] nav {
+border: none;
+border-radius: 20px;
+box-shadow: var(--neu-out);
+}
+/* keeps the logo floating exactly in the middle */
+.logo-wrapper {
+display: flex;
+align-items: center;
+gap: 8px;
+position: absolute;
+left: 50%;
+transform: translateX(-50%);
+pointer-events: none; /* doesn't interfere with the buttons */
+}
+/* keep the right-side buttons in a single row, no wrapping */
+.nav-actions {
+display: flex !important;
+flex-direction: row !important;
+align-items: center !important;
+gap: 10px !important;
+flex-wrap: nowrap !important; /* stop it from wrapping to a new line */
+z-index: 10;
+}
+

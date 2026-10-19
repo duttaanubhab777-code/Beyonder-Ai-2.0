@@ -1,0 +1,23 @@
+:root{
+    --bg-base:#0a0b10;
+    --bg-panel:#14161f;
+    --bg-panel-2:#191c27;
+    --accent:#7c6cff;
+    --accent-2:#00d9ff;
+    --text-primary:#eef0f7;
+    --text-muted:#868c9e;
+    --border-subtle:rgba(255,255,255,0.07);
+    --shadow-soft:0 6px 20px rgba(124,108,255,0.28);
+    --code-bg:#0d0e14;
+}
+
+/* Any element styled with display:flex/grid via a class (modal-overlay,
+   icon-btn, etc.) needs this — otherwise the browser's own default
+   [hidden]{display:none} rule loses to our class rule and the element
+   stays visible even while "hidden" is set. This is what was making the
+   modal close (X) buttons look broken: JS was setting .hidden = true
+   correctly, but the modal never actually disappeared. */
+[hidden]{
+    display:none !important;
+}
+

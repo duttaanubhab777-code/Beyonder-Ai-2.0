@@ -1,0 +1,40 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background-color:var(--bg-base);
+    color:var(--text-primary);
+    font-family:'Inter', system-ui, sans-serif;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+    padding:14px;
+    overflow:hidden;
+    position:relative;
+    transition:background-color 0.25s ease, color 0.25s ease;
+}
+
+/* single quiet hero moment: a soft nebula glow behind everything */
+.bg-glow{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(124,108,255,0.16), transparent 45%),
+        radial-gradient(circle at 85% 15%, rgba(0,217,255,0.10), transparent 40%);
+    pointer-events:none;
+    transition:opacity 0.25s ease;
+}
+
+/* Adjusted glow for light mode to prevent washed-out look */
+[data-theme="light"] .bg-glow{
+    opacity: 0.6;
+    background:
+        radial-gradient(circle at 20% 0%, rgba(90, 50, 250, 0.05), transparent 45%),
+        radial-gradient(circle at 85% 15%, rgba(0, 123, 153, 0.04), transparent 40%);
+}
+
+

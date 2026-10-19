@@ -1,0 +1,23 @@
+/* ---------- light theme override: neumorphic / soft-UI ---------- */
+/* Neumorphism er mul niyom: panel r background ekoi rong-er hoy,
+   depth ashe shudhu duita shadow (ekta alo, ekta chaya) theke,
+   border r color-contrast theke na. */
+[data-theme="light"]{
+    --bg-base: #e9edf3;
+    --bg-panel: #e9edf3;
+    --bg-panel-2: #e9edf3;
+    --accent: #5a32fa;
+    --accent-2: #007b99;
+    --text-primary: #2d3142;
+    --text-muted: #6b7280;
+    --border-subtle: transparent;
+    --shadow-soft: 7px 7px 16px rgba(90,50,250,0.28), -5px -5px 14px rgba(255,255,255,0.7);
+    --code-bg: #dde3ea;
+
+    /* neumorphic shadow pairs */
+    --neu-out: 7px 7px 15px rgba(163,177,198,0.55), -7px -7px 15px rgba(255,255,255,0.85);
+    --neu-out-sm: 4px 4px 9px rgba(163,177,198,0.5), -4px -4px 9px rgba(255,255,255,0.85);
+    --neu-in: inset 4px 4px 9px rgba(163,177,198,0.45), inset -4px -4px 9px rgba(255,255,255,0.8);
+    --neu-in-sm: inset 2px 2px 5px rgba(163,177,198,0.45), inset -2px -2px 5px rgba(255,255,255,0.8);
+}
+

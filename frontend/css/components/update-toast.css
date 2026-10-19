@@ -1,0 +1,84 @@
+/* =========================================
+   UPDATE TOAST — "a new version is live" popup.
+   Shown when the service worker detects a fresh deploy while the
+   user already has the app open, so changes actually reach them
+   instead of silently sitting behind an old cached copy.
+   ========================================= */
+.update-toast{
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translate(-50%, 120%);
+    z-index:2000;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    max-width:min(92vw, 420px);
+    padding:14px 14px 14px 16px;
+    background:var(--bg-panel);
+    border:1px solid var(--border-subtle);
+    border-radius:16px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.35);
+    opacity:0;
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
+}
+[data-theme="light"] .update-toast{ border:none; box-shadow:var(--neu-out); }
+.update-toast.show{ transform:translate(-50%, 0); opacity:1; }
+
+.update-toast-icon{
+    flex-shrink:0;
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    color:#fff;
+    font-size:14px;
+    animation:driftSpin 3.5s linear infinite;
+}
+.update-toast-text{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    line-height:1.3;
+}
+.update-toast-text strong{ font-size:0.88rem; font-weight:600; }
+.update-toast-text span{ font-size:0.78rem; color:var(--text-muted); }
+
+.update-toast-btn{
+    flex-shrink:0;
+    border:none;
+    outline:none;
+    padding:9px 16px;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:0.83rem;
+    font-weight:600;
+    color:#fff;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(124,108,255,0.35);
+    transition:transform 0.15s ease;
+}
+.update-toast-btn:hover{ transform:translateY(-1px); }
+.update-toast-btn:active{ transform:scale(0.96); }
+
+.update-toast-close{
+    flex-shrink:0;
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    font-size:16px;
+    cursor:pointer;
+    padding:2px 4px;
+    line-height:1;
+}
+.update-toast-close:hover{ color:var(--text-primary); }
+
+@media (max-width:480px){
+    .update-toast{ bottom:14px; padding:12px 12px 12px 14px; gap:10px; }
+    .update-toast-text strong{ font-size:0.82rem; }
+    .update-toast-text span{ font-size:0.73rem; }
+    .update-toast-btn{ padding:8px 12px; font-size:0.78rem; }
+}
+

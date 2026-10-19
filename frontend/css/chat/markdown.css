@@ -1,0 +1,131 @@
+/* ---------- markdown content inside incoming ---------- */
+.message.incoming pre{
+    position:relative;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    overflow-x:auto;
+    max-width:100%;
+    background:var(--code-bg);
+    border:1px solid var(--border-subtle);
+    padding:10px 12px;
+    border-radius:10px;
+    margin:8px 0;
+}
+
+[data-theme="light"] .message.incoming pre{
+    border:none;
+    box-shadow:var(--neu-in-sm);
+}
+
+.message.incoming code{
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-size:0.9em;
+    color:#7c6cff;
+}
+
+[data-theme="light"] .message.incoming code{
+    color:#5638d6;
+}
+
+.message.incoming pre code{
+    color:inherit;
+}
+
+.code-copy-btn{
+    position:absolute;
+    top:6px;
+    right:6px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border-subtle);
+    color:var(--text-muted);
+    font-size:11px;
+    padding:3px 7px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.code-copy-btn:hover{
+    color:var(--text-primary);
+}
+
+[data-theme="light"] .code-copy-btn{
+    background: var(--bg-panel);
+    border:none;
+    box-shadow:var(--neu-out-sm);
+}
+
+.message.incoming table{
+    display:block;
+    overflow-x:auto;
+    width:max-content;
+    max-width:100%;
+    border-collapse:collapse;
+    margin:10px 0;
+    font-size:13px;
+}
+
+.message.incoming th,
+.message.incoming td{
+    border:1px solid var(--border-subtle);
+    padding:8px 10px;
+    text-align:left;
+    white-space:normal;
+    min-width:100px;
+}
+
+.message.incoming th{
+    background:rgba(255,255,255,0.04);
+    font-weight:600;
+}
+
+[data-theme="light"] .message.incoming th,
+[data-theme="light"] .message.incoming td{
+    border:1px solid rgba(163,177,198,0.35);
+}
+
+[data-theme="light"] .message.incoming th{
+    background:rgba(163,177,198,0.15);
+}
+
+.typing-cursor{
+    display:inline-block;
+    width:2px;
+    height:1em;
+    background-color:var(--accent-2);
+    margin-left:2px;
+    vertical-align:middle;
+    animation:blink 0.8s step-end infinite;
+}
+
+@keyframes blink{
+    50%{ opacity:0; }
+}
+
+.copy-btn-outside{
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    font-size:12.5px;
+    cursor:pointer;
+    padding:4px 8px;
+    margin:-8px 0 4px 36px;
+    align-self:flex-start;
+    border-radius:6px;
+    transition:0.2s ease;
+}
+
+.copy-btn-outside:hover{
+    background:rgba(255,255,255,0.06);
+    color:var(--text-primary);
+}
+
+[data-theme="light"] .copy-btn-outside:hover{
+    background: rgba(163,177,198,0.2);
+}
+
+.copy-btn-outside i.fa-check{
+    color:#4CAF50;
+}
+

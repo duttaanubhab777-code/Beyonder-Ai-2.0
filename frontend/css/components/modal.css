@@ -1,0 +1,78 @@
+/* =========================================
+   MODALS (Profile settings / Chat with Admin)
+   ========================================= */
+.modal-overlay{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+padding:10px; /* smaller padding so the popup looks bigger on mobile */
+    background:rgba(4,5,10,0.7); 
+    backdrop-filter:blur(5px);
+    animation:fadeIn 0.2s ease;
+}
+
+.modal-card{
+    width:100%;
+max-width:500px; /* widened */
+max-height:92vh; /* increased height */
+    display:flex;
+    flex-direction:column;
+    background:var(--bg-panel);
+    border:1px solid var(--border-subtle);
+    border-radius:24px; 
+    overflow:hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+
+
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+
+
+[data-theme="light"] .modal-card{
+    border:none;
+    box-shadow:var(--neu-out);
+}
+
+.modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px;
+    border-bottom:1px solid var(--border-subtle);
+    flex-shrink:0;
+}
+
+.modal-header h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:1.05rem;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.modal-header h2 i{ color:var(--accent-2); }
+
+.modal-close{
+    width:30px; height:30px;
+    border:none; outline:none;
+    border-radius:50%;
+    background:var(--bg-panel-2);
+    color:var(--text-muted);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:0.2s ease;
+}
+.modal-close:hover{ color:var(--text-primary); }
+
+.modal-body{
+    padding:20px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
