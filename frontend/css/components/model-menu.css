@@ -1,0 +1,21 @@
+/* The little "+" menu next to the composer that picks the AI model */
+.model-menu{
+    position:absolute; left:8px; bottom:calc(100% + 10px);
+    min-width:190px; padding:6px;
+    display:flex; flex-direction:column; gap:2px;
+    background:var(--bg-panel); border:1px solid var(--border-subtle);
+    border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.4);
+    z-index:50; animation:fadeIn .15s ease;
+}
+[data-theme="light"] .model-menu{ border:none; box-shadow:var(--neu-out); }
+.model-option{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 12px; border:none; border-radius:10px;
+    background:transparent; color:var(--text-primary);
+    font:inherit; font-size:14px; text-align:left; cursor:pointer;
+}
+.model-option:hover{ background:var(--bg-panel-2); }
+.model-option.active{ color:var(--accent-2); font-weight:600; }
+.model-option .check{ opacity:0; }
+.model-option.active .check{ opacity:1; }
+#model-menu-btn.has-model{ color:var(--accent-2); }

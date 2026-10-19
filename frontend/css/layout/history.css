@@ -1,0 +1,22 @@
+/* "Past chats" list inside the history sidebar */
+.sidebar-chat-list{ display:flex; flex-direction:column; gap:6px; }
+.history-item{
+    display:flex; align-items:center; gap:6px;
+    border-radius:12px; border:1px solid transparent;
+}
+.history-item.active{ background:var(--bg-panel-2); border-color:rgba(124,108,255,0.35); }
+.history-open{
+    flex:1; min-width:0; text-align:left;
+    padding:12px 12px; border:none; background:transparent;
+    color:var(--text-primary); font:inherit; font-size:14px; cursor:pointer;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.history-open small{ display:block; color:var(--text-muted); font-size:11.5px; margin-top:2px; }
+.history-open:hover{ color:var(--accent-2); }
+.history-del{
+    border:none; background:transparent; color:var(--text-muted);
+    padding:10px 12px; cursor:pointer; border-radius:10px;
+}
+.history-del:hover{ color:#ff4757; background:rgba(255,71,87,.1); }
+.history-empty{ color:var(--text-muted); font-size:13.5px; text-align:center; padding:24px 8px; }
+[data-theme="light"] .history-item.active{ box-shadow:var(--neu-in-sm); border-color:transparent; }

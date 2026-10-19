@@ -1,0 +1,26 @@
+/* One stylesheet to rule them all: every page links ONLY this file.
+   Order matters: variables -> base -> layout -> components -> chat -> extras. */
+@import url("base/variables.css");
+@import url("base/reset.css");
+@import url("base/theme-light.css");
+
+@import url("layout/navbar.css");
+@import url("layout/sidebar.css");
+@import url("layout/history.css");
+
+@import url("components/modal.css");
+@import url("components/forms.css");
+@import url("components/avatar.css");
+@import url("components/misc.css");
+@import url("components/support-chat.css");
+@import url("components/update-toast.css");
+@import url("components/toast.css");
+@import url("components/banner.css");
+@import url("components/model-menu.css");
+
+@import url("chat/chat-area.css");
+@import url("chat/hero.css");
+@import url("chat/markdown.css");
+@import url("chat/typing.css");
+@import url("chat/composer.css");
+@import url("chat/extras.css");

@@ -1,0 +1,22 @@
+/* Announcement / maintenance / "viewing as user" banners */
+.banner{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; margin-bottom:10px;
+    border-radius:14px; font-size:13.5px; line-height:1.35;
+    background:rgba(0,217,255,0.08); border:1px solid rgba(0,217,255,0.25);
+    color:var(--text-primary); flex-shrink:0;
+}
+.banner > i{ color:var(--accent-2); flex-shrink:0; }
+.banner > span{ flex:1; word-break:break-word; }
+.banner-warning{ background:rgba(255,171,0,0.10); border-color:rgba(255,171,0,0.35); }
+.banner-warning > i{ color:#ffab00; }
+.banner-success{ background:rgba(46,204,113,0.10); border-color:rgba(46,204,113,0.35); }
+.banner-success > i{ color:#2ecc71; }
+.banner-danger{ background:rgba(255,71,87,0.10); border-color:rgba(255,71,87,0.35); }
+.banner-danger > i{ color:#ff4757; }
+.banner button{
+    border:none; background:transparent; color:var(--text-muted);
+    cursor:pointer; padding:4px 8px; border-radius:8px; font:inherit; font-weight:600;
+}
+.banner button:hover{ color:var(--text-primary); }
+[data-theme="light"] .banner{ border:none; box-shadow:var(--neu-out-sm); }

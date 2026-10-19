@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Beyonder AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,22 +10,23 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/main.css">
 
-  <!-- ===== PWA: installable "app" (manifest + icons + theme color) ===== -->
+  <!-- PWA: installable app -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0b10">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Beyonder AI">
 </head>
 <body class="checking-auth">
 
     <div class="bg-glow"></div>
 
-        <!-- ================= NAVBAR ================= -->
+    <!-- ================= NAVBAR ================= -->
     <nav class="ai">
-        <button id="menu-btn" class="icon-btn" title="Open Menu">
+        <button id="menu-btn" class="icon-btn" title="Open menu" aria-label="Open menu">
             <i class="fa-solid fa-bars-staggered"></i>
         </button>
 
@@ -37,124 +38,125 @@
         </div>
 
         <div class="nav-actions">
-            <button id="new-chat-btn" class="icon-btn" title="New chat">
+            <button id="new-chat-btn" class="icon-btn" title="New chat" aria-label="New chat">
                 <i class="fa-solid fa-plus"></i>
             </button>
-            <button id="profile-btn" class="icon-btn" title="Profile settings" style="border:none; padding:0;">
-                <span id="nav-avatar" class="nav-avatar">
-                    <i class="fa-solid fa-user"></i>
-                </span>
+            <button id="profile-btn" class="icon-btn" title="Profile settings" aria-label="Profile settings" style="border:none; padding:0;">
+                <span id="nav-avatar" class="nav-avatar"><i class="fa-solid fa-user"></i></span>
             </button>
         </div>
     </nav>
 
+    <!-- announcement / maintenance / admin-view banners are inserted here -->
+    <div id="banner-slot"></div>
+
     <!-- ================= SIDEBAR MENU ================= -->
     <div id="sidebar-overlay" class="sidebar-overlay" hidden></div>
-    
+
     <div id="sidebar-menu" class="sidebar-menu">
         <div class="sidebar-header">
             <h2><i class="fa-solid fa-compass"></i> Menu</h2>
-            <button id="close-sidebar-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            <button id="close-sidebar-btn" class="icon-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        
+
         <div class="sidebar-content">
-            <button class="sidebar-item" id="history-btn">
-                <i class="fa-solid fa-clock-rotate-left"></i> 
+            <button class="sidebar-item" id="history-btn" type="button">
+                <i class="fa-solid fa-clock-rotate-left"></i>
                 <span>Chat History</span>
             </button>
-            <button class="sidebar-item" id="admin-chat-btn">
-                <i class="fa-solid fa-headset"></i> 
+            <button class="sidebar-item" id="admin-chat-btn" type="button">
+                <i class="fa-solid fa-headset"></i>
                 <span>Chat with Admin</span>
+                <span id="support-badge" class="unread-dot" hidden></span>
             </button>
-            <button class="sidebar-item" id="theme-toggle-btn">
-                <i class="fa-solid fa-moon"></i> 
+            <button class="sidebar-item" id="theme-toggle-btn" type="button">
+                <i class="fa-solid fa-moon"></i>
                 <span>Switch Theme</span>
             </button>
-            <button class="sidebar-item" id="install-btn" hidden>
-                <i class="fa-solid fa-download"></i> 
+            <button class="sidebar-item" id="push-btn" type="button" hidden>
+                <i class="fa-solid fa-bell"></i>
+                <span>Enable Notifications</span>
+            </button>
+            <button class="sidebar-item" id="install-btn" type="button" hidden>
+                <i class="fa-solid fa-download"></i>
                 <span>Install App</span>
             </button>
-          
-          
+            <button class="sidebar-item" id="admin-link" type="button" hidden>
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Admin Panel</span>
+            </button>
         </div>
-      
 
         <div class="sidebar-footer">
-            <button class="sidebar-item logout-item" onclick="logoutUser()">
-                <i class="fa-solid fa-right-from-bracket"></i> 
+            <button class="sidebar-item logout-item" id="logout-btn" type="button">
+                <i class="fa-solid fa-right-from-bracket"></i>
                 <span>Logout</span>
             </button>
         </div>
     </div>
 
-
-  <!-- ================= HISTORY SIDEBAR (NEW) ================= -->
+    <!-- ================= HISTORY SIDEBAR ================= -->
     <div id="history-sidebar" class="sidebar-menu">
         <div class="sidebar-header">
             <h2><i class="fa-solid fa-clock-rotate-left"></i> Past Chats</h2>
-            <button id="close-history-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            <button id="close-history-btn" class="icon-btn" aria-label="Close history"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="sidebar-content">
-            <!-- চ্যাট লিস্টগুলো এখন এই নতুন সাইডবারের ভেতরে লোড হবে -->
             <div id="sidebar-chat-list" class="sidebar-chat-list"></div>
         </div>
     </div>
-    
 
     <div class="chat-area" id="chat-area"></div>
 
     <div class="chat-input-area">
-    <button id="model-menu-btn" class="icon-btn" title="Choose AI model" type="button">
-        <i class="fa-solid fa-plus"></i>
-    </button>
+        <button id="model-menu-btn" class="icon-btn" title="Choose AI model" aria-label="Choose AI model" type="button">
+            <i class="fa-solid fa-plus"></i>
+        </button>
 
         <div id="model-menu" class="model-menu" hidden>
-        <button class="model-option" data-provider="gemini">✨ Normal</button>
-        <button class="model-option" data-provider="gpt-oss">⚡ Smart</button>
-        <button class="model-option" data-provider="qwen">🧠 Thinker</button>
-        <button class="model-option" data-provider="groq">🚀 Speedy</button>
+            <button class="model-option" data-provider="gemini" type="button"><span class="model-label">&#10024; Normal</span><i class="fa-solid fa-check check"></i></button>
+            <button class="model-option" data-provider="gpt-oss" type="button"><span class="model-label">&#9889; Smart</span><i class="fa-solid fa-check check"></i></button>
+            <button class="model-option" data-provider="qwen" type="button"><span class="model-label">&#129504; Thinker</span><i class="fa-solid fa-check check"></i></button>
+            <button class="model-option" data-provider="groq" type="button"><span class="model-label">&#128640; Speedy</span><i class="fa-solid fa-check check"></i></button>
         </div>
-      
 
-    <textarea id="user-input" placeholder="Ask Beyonder" rows="1"></textarea>
-    <button id="send-btn" class="send-button" aria-label="Send message">
-    <i class="fa-solid fa-paper-plane"></i>
-    </button>
+        <textarea id="user-input" placeholder="Ask Beyonder" rows="1"></textarea>
+        <button id="send-btn" class="send-button" aria-label="Send message" type="button">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
     </div>
 
-    <p class="credit">Created by Anubhab Dutta & Arnab Adhikari</p>
+    <p class="credit">Created by Anubhab Dutta &amp; Arnab Adhikari</p>
 
     <!-- ================= PROFILE SETTINGS MODAL ================= -->
     <div id="profile-modal" class="modal-overlay" hidden>
         <div class="modal-card">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-user-gear"></i> Profile Settings</h2>
-                <button class="modal-close" id="profile-modal-close" aria-label="Close">
+                <button class="modal-close" id="profile-modal-close" aria-label="Close" type="button">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <div class="modal-body">
                 <div class="avatar-row">
-                    <div class="avatar-preview" id="avatar-preview">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
+                    <div class="avatar-preview" id="avatar-preview"><i class="fa-solid fa-user"></i></div>
                     <div>
                         <button class="btn-secondary" id="avatar-upload-btn" type="button">
                             <i class="fa-solid fa-camera"></i> Change photo
                         </button>
                         <input type="file" id="avatar-file-input" accept="image/*" hidden>
-                        <div class="hint-text">JPG or PNG, up to ~1MB</div>
+                        <div class="hint-text">Any photo - it is cropped and shrunk automatically</div>
                     </div>
                 </div>
 
                 <label class="field-label" for="profile-name-input">Name</label>
-                <input type="text" id="profile-name-input" class="auth-input" placeholder="Your name">
+                <input type="text" id="profile-name-input" class="auth-input" placeholder="Your name" maxlength="80">
 
                 <label class="field-label" for="profile-address-input">Address <span class="hint-text" style="font-weight:400;">(optional)</span></label>
-                <input type="text" id="profile-address-input" class="auth-input" placeholder="Only if you want Beyonder AI to know this">
+                <input type="text" id="profile-address-input" class="auth-input" placeholder="Only if you want Beyonder AI to know this" maxlength="300">
 
-                <label class="field-label">Email</label>
+                <label class="field-label" for="profile-email-display">Email</label>
                 <input type="text" id="profile-email-display" class="auth-input" disabled>
 
                 <div id="profile-save-status" class="modal-status"></div>
@@ -165,17 +167,32 @@
                 <hr class="modal-divider">
 
                 <h3 class="modal-subheading"><i class="fa-solid fa-lock"></i> Change Password</h3>
-                <p class="hint-text">For security, your actual password can't be displayed — only its encrypted form is stored. Enter your current password to set a new one.</p>
+                <p class="hint-text">Your real password can't be shown - only an encrypted form is stored. Enter your current password to set a new one.</p>
 
                 <label class="field-label" for="current-password-input">Current password</label>
-                <input type="password" id="current-password-input" class="auth-input" placeholder="Current password">
+                <input type="password" id="current-password-input" class="auth-input" placeholder="Current password" autocomplete="current-password">
 
                 <label class="field-label" for="new-password-input">New password</label>
-                <input type="password" id="new-password-input" class="auth-input" placeholder="New password (min 8 characters)">
+                <input type="password" id="new-password-input" class="auth-input" placeholder="New password (min 8 characters)" autocomplete="new-password">
 
                 <div id="password-save-status" class="modal-status"></div>
                 <button class="auth-btn" id="password-save-btn" type="button">
                     <span class="btn-text">Update password</span>
+                </button>
+
+                <hr class="modal-divider">
+
+                <h3 class="modal-subheading"><i class="fa-solid fa-shield-halved"></i> Security</h3>
+                <button class="btn-secondary" id="logout-all-btn" type="button">
+                    <i class="fa-solid fa-laptop-mobile"></i> Sign out other devices
+                </button>
+
+                <h3 class="modal-subheading" style="color:#ff4757;"><i class="fa-solid fa-triangle-exclamation"></i> Delete account</h3>
+                <p class="hint-text">Deletes your account and every chat permanently.</p>
+                <input type="password" id="delete-password-input" class="auth-input" placeholder="Enter your password to confirm" autocomplete="current-password">
+                <div id="delete-status" class="modal-status"></div>
+                <button class="btn-secondary btn-danger" id="delete-account-btn" type="button">
+                    <i class="fa-regular fa-trash-can"></i> Delete my account
                 </button>
             </div>
         </div>
@@ -186,16 +203,16 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-headset"></i> Chat with Admin</h2>
-                <button class="modal-close" id="admin-chat-modal-close" aria-label="Close">
+                <button class="modal-close" id="admin-chat-modal-close" aria-label="Close" type="button">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="modal-body admin-chat-body">
-                <p class="hint-text">This is a private line straight to a Beyonder AI admin — separate from your AI chat above.</p>
+                <p class="hint-text">This is a private line straight to a Beyonder AI admin - separate from your AI chat.</p>
                 <div id="admin-chat-messages" class="admin-chat-log"></div>
                 <div class="admin-chat-compose">
-                    <textarea id="admin-chat-text" placeholder="Type a message to the admin…" rows="1"></textarea>
-                    <button id="admin-chat-send" class="send-button" aria-label="Send to admin">
+                    <textarea id="admin-chat-text" placeholder="Type a message to the admin..." rows="1" maxlength="4000"></textarea>
+                    <button id="admin-chat-send" class="send-button" aria-label="Send to admin" type="button">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
@@ -205,10 +222,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 
-    <script src="pwa-update.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="js/chat/main.js"></script>
 </body>
-  </html>
-  
+</html>

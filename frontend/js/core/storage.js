@@ -7,6 +7,7 @@ const KEY = Object.freeze({
     returning: "beyonder_returning_user",
     supportSeen: "beyonder-support-seen-id",
     bannerDismissed: "beyonder-banner-dismissed",
+    provider: "beyonder-provider",
 });
 
 const attempt = (fn, fallback = null) => {

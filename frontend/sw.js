@@ -1,6 +1,6 @@
 // Beyonder AI — service worker
 //
-// WHY THIS FILE CHANGED:
+// WHY THIS FILE WORKS THIS WAY:
 // The old version cached the app shell (HTML/CSS/JS) and served the CACHED
 // copy first on every load ("cache-first"), only refreshing the cache
 // quietly in the background. That's what caused real users to keep seeing
@@ -11,34 +11,38 @@
 //
 // Fix: the app shell is now fetched "network-first" (always try the real
 // network first; only fall back to the cache if the device is offline).
-// Combined with pwa-update.js (which shows the "New version available"
+// Combined with js/pwa/register.js (which shows the "New version available"
 // popup), this means: (1) a normal reload always gets the newest files,
 // and (2) if the user already has the tab open during a deploy, they get
 // asked to refresh instead of silently keeps using stale code.
 
-const SW_VERSION = "v3"; // bump this string on any deploy that should force a clean cache
+const SW_VERSION = "v4"; // bump this string on any deploy that should force a clean cache
 const CACHE_NAME = `beyonder-shell-${SW_VERSION}`;
 
+// Only the essentials are pre-cached. Every other file (the js/ and css/ modules) is cached
+// automatically the first time it is loaded, by the network-first handler at the bottom.
 const APP_SHELL = [
   "index.html",
   "login.html",
-  "style.css",
-  "app.js",
-  "login.js",
-  "pwa-update.js",
+  "css/main.css",
+  "js/chat/main.js",
+  "js/auth/login.js",
   "manifest.json",
-  "icon-192.png",
-  "icon-512.png"
+  "assets/icons/icon-192.png",
+  "assets/icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) =>
+      // one missing file must never break the whole install
+      Promise.allSettled(APP_SHELL.map((url) => cache.add(url)))
+    )
   );
   // NOTE: no self.skipWaiting() here on purpose. If a user already has the
   // app open, we don't want to yank the ground out from under their active
-  // session — the new worker waits until the user taps "Refresh" on the
-  // update popup (see pwa-update.js), which sends SKIP_WAITING below.
+  // session - the new worker waits until the user taps "Refresh" on the
+  // update popup (see js/pwa/register.js), which sends SKIP_WAITING below.
 });
 
 self.addEventListener("activate", (event) => {
@@ -59,7 +63,7 @@ self.addEventListener("message", (event) => {
 
 // ================= PUSH NOTIFICATIONS =================
 // Fired by the browser's push service whenever the backend sends a push
-// (see /api/push/subscribe and send_push_to_user() in app.py) — this is
+// (see /api/push/subscribe and push_service.send_to_user() in the backend) — this is
 // what shows a real popup notification on the phone's home screen, even
 // if Beyonder AI isn't open in any tab. If the device is offline right
 // now, the push service itself holds the message and delivers it (which
@@ -75,8 +79,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: payload.body,
-    icon: "icon-192.png",
-    badge: "icon-192.png",
+    icon: "assets/icons/icon-192.png",
+    badge: "assets/icons/icon-192.png",
     vibrate: [100, 50, 100],
     data: { url: payload.url || "index.html" },
   };

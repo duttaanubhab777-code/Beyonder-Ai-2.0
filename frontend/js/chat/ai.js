@@ -34,7 +34,7 @@ export class AiError extends Error {
     }
 }
 
-export async function askAI(history, profile) {
+export async function askAI(history, profile, provider = "gemini") {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), CONFIG.AI_TIMEOUT_MS);
 
@@ -43,6 +43,7 @@ export async function askAI(history, profile) {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: getToken() || "" },
             body: JSON.stringify({
+                provider,
                 systemInstruction: { parts: [{ text: buildSystemPrompt(profile) }] },
                 contents: buildContext(history),
             }),
@@ -52,10 +53,12 @@ export async function askAI(history, profile) {
         let data = {};
         try { data = await res.json(); } catch { }
 
-        if (!res.ok || !data.text) {
+        // Our proxy answers { text }. The old Gemini-style shape is still accepted as a fallback.
+        const text = data.text ?? data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!res.ok || !text) {
             throw new AiError(data.error || FRIENDLY[res.status] || "Sorry, I couldn't answer that.", res.status);
         }
-        return data.text;
+        return text;
     } catch (err) {
         if (err instanceof AiError) throw err;
         if (err.name === "AbortError") throw new AiError(FRIENDLY[504], 504);
