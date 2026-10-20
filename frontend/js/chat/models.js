@@ -12,7 +12,7 @@ import { $, $$ } from "../core/dom.js"; import { storage } from "../core/storage
 
 export function initModelPicker() {
     const button = $("#model-menu-btn");
-    const menu = $("#model-menu"); if (!button \vert{}\vert{} !menu) return;      const saved = storage.get(storage.KEY.provider); select(PROVIDERS.includes(saved) ? saved : "gemini");      button.addEventListener("click", (event) => { event.stopPropagation(); menu.hidden = !menu.hidden; });      for (const option of $$(".model-option")) {
+    const menu = $("#model-menu"); if (!button || !menu) return;      const saved = storage.get(storage.KEY.provider); select(PROVIDERS.includes(saved) ? saved : "gemini");      button.addEventListener("click", (event) => { event.stopPropagation(); menu.hidden = !menu.hidden; });      for (const option of $$(".model-option")) {
         option.addEventListener("click", () => {
             select(option.dataset.provider);
             menu.hidden = true;
