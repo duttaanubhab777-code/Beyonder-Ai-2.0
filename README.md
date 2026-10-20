@@ -1,240 +1,352 @@
-# Beyonder AI — Function Reference
+# Beyonder AI 2.0
 
-This document explains what every function in the frontend (`login.js`, `app.js`, `pwa-update.js`, `sw.js`) does, and how it talks to the backend (`app.py` on PythonAnywhere). Paste this into `README.md` under a "How it works" section.
+A friendly, installable AI chat app with accounts, chat history, an admin dashboard and push notifications.
 
----
+Created by **Anubhab Dutta** & **Arnab Adhikari**.
 
-## Architecture overview
-
-- **Frontend**: static files (`index.html`, `login.html`, `app.js`, `login.js`, `pwa-update.js`, `style.css`) hosted on **GitHub Pages**, installable as a **PWA** (`manifest.json`, `sw.js`).
-- **Backend**: Flask app on **PythonAnywhere** (`app.py`, at `https://anubhabdutta.pythonanywhere.com`), exposing JSON API endpoints under `/api/...`. All calls to it go through a single `BACKEND_BASE` constant in `app.js` so the URL only lives in one place.
-- **Auth model**: token-based. On login/signup, the server returns a random token (`uuid4`) that the frontend stores in `localStorage` under the key `beyonder_token`, then sends back on every request as an `Authorization` header. (Not cookies — this avoids third-party cookie blocking issues that happen when frontend and backend are on different domains.)
-- **AI replies**: come from a separate Vercel API (`https://beyonder-api.vercel.app/api/chat`), not from the Python backend. That proxy now fans out to **multiple AI providers** (Gemini, GPT-OSS, Qwen, Groq) depending on what the user picked. The Python backend's job is only accounts, login, chat history/sessions, profile data, push notifications, and the admin-facing features.
+- **Frontend**: plain HTML / CSS / JavaScript (ES modules). No build step, no framework.
+- **Backend**: Flask + SQLite, organised as a small Python package (`backend/beyonder`).
+- **AI**: a separate proxy, the `beyonder-api` repo on Vercel, that talks to Gemini and Groq.
 
 ---
 
-## login.js — Login / Signup / OTP / Password Reset page
+## Features
 
-### Theme toggle
-```js
-applyTheme(theme)
-```
-Switches between dark/light mode by toggling a `data-theme` attribute on `<html>` and swapping the moon/sun icon. Saves the choice to `localStorage` (`beyonder-theme`) so it persists across page loads, and defaults to the OS-level preference (`prefers-color-scheme`) the first time.
+**For users**
 
-### Screen switcher
-```js
-const screens = ['login-screen', 'signup-screen', 'otp-screen', 'forgot-screen', 'reset-screen'];
-switchScreen(target)
-```
-The page is a single HTML file with five "screens" (login, signup, OTP verify, forgot-password, reset-password) stacked on top of each other, only one visible at a time via a `.active` CSS class. `switchScreen()` hides all five and shows the one requested. Any element with a `data-switch="screen-id"` attribute automatically wires up a click to jump to that screen. It also clears any leftover error messages so switching screens doesn't show a stale error from a different form.
+- Sign up with e-mail OTP, log in, forgot / reset password
+- Chat with the AI: Markdown, code blocks with a copy button, maths (KaTeX), typing animation (tap the bubble to skip), "Try again" on failures
+- Four AI models from the **+** button: ✨ Normal, ⚡ Smart, 🧠 Thinker, 🚀 Speedy
+- Many chats: the history panel lists past chats, open or delete any of them
+- Profile: name, optional address (the AI can use it), photo (cropped to 256×256 in the browser), change password, sign out other devices, delete account
+- **Chat with Admin**: a private two-way line to the admin, separate from the AI chat
+- Admin messages and broadcasts appear inside the chat; optional phone push notifications
+- Dark / light theme, installable PWA, "New version available" popup after every deploy
 
-### Password show/hide toggle
-Every password field has an eye icon (`.toggle-pass`) that flips the input's `type` between `password` and `text`, and swaps the icon accordingly.
+**For admins** (`admin.html`)
 
-### Password strength meter
-```js
-attachStrengthMeter(inputId, fillId, labelId)
-```
-A reusable function attached to **both** the signup password field and the "new password" field on the reset-password screen. On every keystroke it scores the password 0–4 based on: length ≥ 8, has an uppercase letter, has a digit, has a special character. The score drives a colored progress bar (red → orange → yellow → green → cyan) and a text label ("Too weak" → "Very strong"). This is a UX hint only — the real minimum-length rule is enforced server-side.
-
-### Helpers
-- `showError(id, msg)` / `hideError(id)` — show/hide the small red error box under a form.
-- `clearAllErrors()` — hides all five forms' error boxes at once (called on every screen switch).
-- `setLoading(btn, loading, loadingText)` — while a request is in flight, swaps a button's label for a spinner + custom text (e.g. "Logging in...") and disables it, so users can't double-submit.
-
-### `apiRequest(url, payload)`
-The single function every form uses to talk to the backend (`API_BASE = "https://anubhabdutta.pythonanywhere.com"`). It:
-1. Reads the saved token from `localStorage` (if any) and attaches it as an `Authorization` header.
-2. Sends a `POST` to `API_BASE + url` with the payload as JSON.
-3. Parses the JSON response; if the HTTP status isn't OK, or the response has `success: false`, it throws an error with the server's message — so every calling form can just `catch` it and show it to the user.
-
-### Login form
-On submit: validates email format and non-empty password, calls `POST /api/login`. If the server returns a `token`, it's saved to `localStorage` (`beyonder_token`); the email is also saved (`beyonder-user`, for display only — never used to decide if someone is logged in). Redirects to `index.html` (the chat page) on success. On failure, shows the server's error and clears the password field.
-
-### Signup → Send OTP
-On submit: validates name/email/password (min 8 chars client-side, enforced again server-side), calls `POST /api/signup/send-otp`. On success, remembers the email in `pendingSignupEmail`, starts the resend countdown (see below), and switches to the OTP screen.
-
-### Verify OTP
-On submit: sends the 6-digit code + `pendingSignupEmail` to `POST /api/signup/verify-otp`. If correct, the server creates the account and returns a token immediately (so the user is logged in right after signing up, no separate login step needed) — token is saved, then redirect to `index.html`.
-
-### OTP resend timer
-```js
-startResendTimer(context, seconds, btnId, timerId)
-```
-A generic countdown used by **both** the signup-OTP screen and the reset-password screen (the `context` string keeps their intervals separate so starting one doesn't cancel the other). It disables the "Resend code" link, shows a live `(NNs)` countdown next to it, and re-enables the link once it hits zero. The countdown length comes from the server's `resend_after` field in the response (currently 60 seconds), which is intentionally separate from how long the OTP itself stays valid (5 minutes) — this matches how most real-world sites behave: you can request a new code well before the old one expires.
-
-### Forgot password → send OTP
-On submit: validates the email, calls `POST /api/forgot-password/send-otp`. The server always replies with a generic success message whether or not the email exists (this prevents attackers from using the form to check which emails are registered). Switches to the reset screen and starts the resend timer.
-
-### Reset password
-On submit: validates the 6-digit code and that the new password is ≥ 8 characters, calls `POST /api/forgot-password/reset` with the email + OTP + new password. On success, returns the user to the login screen to sign in with the new password.
-
-### Resend buttons
-Two click handlers — one for the signup-OTP screen, one for the reset-password screen — that simply re-call the corresponding "send OTP" endpoint and restart that screen's timer.
+| Tab       | What you can do                                                                                                                                                             |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview  | totals, who is online right now, sign-up and message charts (14 days)                                                                                                       |
+| Users     | search, create, edit, add a private note, ban / unban, reset password, sign out everywhere, revoke one session, message, export data (JSON), delete, **log in as the user** |
+| Chats     | search every conversation by text or user, delete messages                                                                                                                  |
+| Support   | inbox of the "Chat with Admin" threads, unread badge, reply, delete                                                                                                         |
+| Broadcast | message everyone (or only people online) with optional push                                                                                                                 |
+| Logs      | login history (filter by e-mail / success) and the admin audit trail                                                                                                        |
+| Settings  | open / close sign-ups, maintenance mode, announcement banner, system status, database backup, vacuum, purge old data, kill switch                                           |
 
 ---
 
-## app.js — Chat page
+## How it fits together
 
-### Session bootstrap
-```js
-generateSessionId()
 ```
-Every conversation now belongs to a **session** (`chat_<random>_<timestamp>`), not just one giant history. On page load, the last-used session ID is read from `localStorage` (`beyonder-current-session`); if none exists yet, a fresh one is generated and saved. `currentSessionId` is what every history/save call is scoped to.
-
-### Admin "Login As" hand-off
-An IIFE at the top of the file checks the URL for an `?admin_token=...` query param (set by the admin dashboard's "Login As" button). If present, it adopts that token as this browser's own `beyonder_token`, then rewrites the URL to strip the parameter out (via `history.replaceState`) so the token doesn't linger visibly in the address bar or browser history.
-
-### Theme toggle
-Same mechanism as `login.js`, kept in sync via the same `localStorage` key so the theme choice carries over between the login page and the chat page.
-
-### Sidebar menu
-- `openSidebar()` / `closeSidebar()` — slide the main hamburger sidebar (or the history sidebar, whichever is open) in/out along with a dimmed overlay. `closeSidebar()` now closes *either* sidebar, since only one can be open at a time.
-- `openHistorySidebar()` — swaps the main sidebar out for a second "chat history" sidebar and triggers `loadSidebarSessions()` to populate it. Clicking the "History" item in the main sidebar opens this instead of just closing the menu.
-
-### PWA install button
-`installBtn` only becomes visible once the browser fires `beforeinstallprompt` (proof the app is actually installable). Clicking it replays the saved prompt event and hides the button once the user has answered it or the app reports itself installed (`appinstalled`). Service-worker registration and update handling now live separately in `pwa-update.js` (see below).
-
-### Code-block copy buttons
-`addCodeCopyButtons(container)` scans rendered Markdown for `<pre>` code blocks and injects a small "Copy" button into each one.
-
-### Message rendering
-- `typeWriterEffect(element, htmlText, parentDiv)` — for new AI replies, reveals the Markdown-rendered text one character at a time (with slightly longer pauses after punctuation) to simulate typing, then re-parses the *complete* text once finished (so code blocks/math render correctly, since partial Markdown can look broken mid-type). Adds a copy button under the finished message.
-- `renderInstant(element, plainText, parentDiv)` — same rendering as above but without the typing animation; used when restoring chat history from a previous session so old messages don't "retype" themselves.
-- `appendMessage(text, type, { animate })` — adds a message bubble to the chat area. If the welcome hero (see below) is still showing, it's removed first. Incoming (AI) messages get a "logo" avatar and route through `typeWriterEffect`/`renderInstant`; outgoing (user) messages are shown as plain text.
-- `showTypingIndicator()` / `removeTypingIndicator()` — the three-dot "AI is typing" bubble shown while waiting for a reply.
-
-### Welcome hero
-```js
-showWelcomeHero()
+ ┌───────────────────────────── browser ─────────────────────────────┐
+ │  login.html · index.html (chat) · admin.html        sw.js (PWA)   │
+ └──────────────┬───────────────────────────────────────┬────────────┘
+                │ accounts, chats, admin                │ AI questions
+                ▼  /api/*  (token in Authorization)     ▼  /api/chat
+   ┌──────────────────────────┐              ┌──────────────────────────┐
+   │ Flask backend            │ ◄─ /api/me ─ │ beyonder-api (Vercel)    │
+   │ (PythonAnywhere)         │   (checks    │ adds the secret keys,    │
+   │ SQLite database          │    the token)│ calls Gemini / Groq      │
+   └──────────────────────────┘              └──────────────────────────┘
 ```
-Replaces the old plain "welcome message" bubble with a proper empty-state screen: a logo, greeting, and four tappable **suggestion chips** (`SUGGESTION_CHIPS`, e.g. "Plan a weekend trip for me"). Tapping a chip fills the composer with that prompt and immediately calls `handleSend()`. Shown whenever a session has no history yet (a brand-new session, or the very first time a fresh account opens the chat).
 
-### Multi-provider model picker
-```js
-updateModelButtonUI(providerName)
-updateMenuCheckmark(providerName)
-```
-The chat page can now talk to more than one AI backend — **Gemini, GPT-OSS, Qwen, or Groq** — chosen from a small popup menu next to the composer. `currentProvider` is read from/written to `localStorage` (`beyonder-provider`, defaulting to `"gemini"`). `updateModelButtonUI()` updates the button's icon/label to match the active provider; `updateMenuCheckmark()` puts a ✔ next to whichever option is currently selected inside the popup and greys out the rest. The chosen `provider` string is sent as part of every request in `getGeminiResponse()`, and the Vercel proxy is what actually routes it to the right model — the frontend itself doesn't know how to talk to each provider directly.
+1. The browser logs in at the Flask backend and receives a random **token**. It is kept in `localStorage` (`beyonder_token`) and sent as the `Authorization` header on every call. No cookies are used, so the frontend can live on a different domain than the backend.
+2. To answer a message, the browser sends the conversation + the chosen model to the **AI proxy** (never directly to Gemini / Groq, so no API key is ever in the browser).
+3. When the answer arrives, the browser saves the exchange in the backend (`/api/save-chat`) so it appears in the history and in the admin's Chats tab.
 
-### `checkAuth()`
-Runs immediately when the chat page loads. It reads the token from `localStorage`; if there isn't one, it redirects straight to `login.html` without even contacting the server. If there is one, it calls `GET /api/me` with the token in the `Authorization` header. If the server says the token isn't valid (`logged_in: false`), it redirects to login; otherwise the caller goes on to reveal the chat UI (see the init block below).
-
-### History & session persistence
-- `saveHistory()` / `loadHistory()` — `chatHistory` (in the shape Gemini's API expects: `{role, parts}`) is saved to `localStorage` (`beyonder-chat-history`) after every message as a local cache. `loadHistory()` now primarily asks the server for `GET /api/chat-history?session_id=<currentSessionId>` — if the server has history for that session it's rendered instantly (`renderInstant`, no retyping); if not, `chatHistory` is reset and `showWelcomeHero()` is shown instead.
-- `startNewChat()` — generates a fresh session ID (`generateSessionId()`), saves it as `beyonder-current-session`, clears the visible chat, and shows the welcome hero. Also closes the sidebar and refreshes the sidebar's session list. Triggered by the "+" (new chat) button.
-- `loadSidebarSessions()` — fetches `GET /api/chat-sessions` and renders one button per past conversation in the history sidebar (title truncated to 25 characters), highlighting whichever one is currently open. Clicking a past session switches `currentSessionId`, reloads its history, refreshes the list, and closes the sidebar. If the backend doesn't support this endpoint yet, a friendly "Backend needs update to show history" message is shown instead of breaking. Called automatically whenever a message is saved (`saveToFriendDatabase`) so the sidebar's titles/ordering stay current.
-
-### `getGeminiResponse(userText)`
-The core send/receive flow:
-1. Pushes the user's message into `chatHistory` and saves it.
-2. Sends the *entire* conversation so far, the selected `provider`, and a fixed system-instruction prompt (defining the "Beyonder AI" persona, optionally personalized with the user's saved name/address from their profile, and telling it not to reveal it's built on Gemini unless directly asked), to the Vercel proxy API.
-3. On a successful reply, pushes the AI's text into history, saves it, and — separately — calls `saveToFriendDatabase()` to log the exchange (scoped to `currentSessionId`) in the Python backend's database.
-4. On any failure (blocked by safety filters, network error), removes the just-added user turn from history so a failed exchange doesn't pollute future context, and shows an apologetic message instead.
-5. `finally` always re-enables the input box and refocuses it.
-
-### `saveToFriendDatabase(userText, aiText)`
-Sends the completed exchange to `POST /api/save-chat` on the Python backend, with the token in the `Authorization` header and the current `session_id`. This is fire-and-forget: if it fails, it's only logged to the console. On success it also calls `loadSidebarSessions()` so a brand-new session immediately shows up (titled) in the history sidebar.
-
-### Admin message polling
-```js
-pollAdminMessages()
-```
-Lets an admin drop a message directly into a user's chat from the admin dashboard, without the user needing to do anything. Every 30 seconds (`ADMIN_MESSAGE_POLL_MS`) it calls `GET /api/check-messages?since_id=...` (the "since" cursor is remembered in `localStorage` as `beyonder-last-admin-msg-id`), and any new messages are pushed into `chatHistory` and rendered as ordinary incoming bubbles — the user can't visually tell them apart from an AI reply.
-
-### Push notifications
-```js
-initPushNotifications()
-urlBase64ToUint8Array(base64String)
-```
-Subscribes the device to Web Push so admin messages can trigger a real phone notification even when the tab isn't open. `initPushNotifications()` fetches the server's VAPID public key (`GET /api/push/vapid-public-key`), asks the browser for notification permission, subscribes via `PushManager` if not already subscribed, and registers the subscription with the backend (`POST /api/push/subscribe`). It bails out silently at every step where the browser doesn't support push, the server hasn't configured it, or the user declines the permission prompt — notifications are always an optional bonus, never something the app depends on. `urlBase64ToUint8Array()` is just a format converter (the VAPID key arrives as base64url text but the Push API needs raw bytes). The actual "show a popup" and "route the tap" logic lives in `sw.js` (see below), since that has to work even with the page closed.
-
-### Startup sequence (self-invoking init block)
-Once `checkAuth()` succeeds: fetches the user's profile (`GET /api/profile`) to set the nav-bar avatar and populate `currentUserProfile` (used to personalize AI replies); kicks off `pollAdminMessages()` immediately and then every 30s; calls `initPushNotifications()`; reveals the chat UI (removes the `checking-auth` CSS class); and finally calls `loadHistory()` for the current session.
-
-### Composer
-- `setComposerDisabled(disabled)` — greys out the send button and textarea while a reply is being fetched, so a user can't send a second message mid-reply.
-- `handleSend()` — reads the textarea, appends the user's bubble, clears/resets the textarea height, disables the composer, shows the typing indicator, and kicks off `getGeminiResponse()`.
-- The `Enter` key is intercepted to insert a newline into the textarea instead of submitting (there's no explicit "send on Enter" — sending only happens via the send button), and the textarea auto-grows as text wraps to new lines.
-
-### `logoutUser()`
-Before clearing anything, it looks up any active push subscription for this device and tells the backend to forget it (`POST /api/push/unsubscribe`), then unsubscribes locally — so a logged-out device stops receiving notifications meant for the account that just left. Then it clears the chat history, token, and admin-message cursor from `localStorage`, tells the backend to invalidate the token (`POST /api/logout`), and redirects to `login.html` regardless of whether that server call succeeded (`.finally`) — so a logout always works from the user's point of view even if the network request fails.
-
-### Profile settings modal
-```js
-colorForName(name)
-setNavAvatar(dataUrlOrNull, name)
-setAvatarPreview(dataUrlOrNull, name)
-setStatus(el, message, kind)
-openProfileModal()
-closeProfileModal()
-```
-A modal for editing account details, separate from login/signup:
-- `colorForName()` hashes a name to a consistent color from a fixed palette, so a given user always gets the same "initial avatar" background color everywhere.
-- `setNavAvatar()` / `setAvatarPreview()` render either the user's uploaded photo or a colored circle with their initial — the first for the small avatar in the nav bar, the second for the larger preview inside the modal.
-- `setStatus()` is a small helper for showing "Saving…" / "Saved!" / error text under the profile and password forms.
-- `openProfileModal()` resets the form, then fetches `GET /api/profile` to fill in the current name, address, email, and avatar.
-- Avatar upload: picking a file resizes it client-side to a 256×256 square JPEG (cropped to fill, via a `<canvas>`) before it's ever sent anywhere, so the stored photo stays small.
-- Saving the profile sends `POST /api/profile/update` with the name, optional address, and the new avatar (if one was picked) — updates the nav avatar and `currentUserProfile` on success.
-- Changing the password sends `POST /api/profile/change-password` with the current + new password (new password must be ≥ 8 characters, checked client-side first).
-
-### Chat-with-admin modal
-```js
-renderAdminChatMessages()
-escapeAdminChatHtml(str)
-pollAdminChat()
-openAdminChatModal()
-closeAdminChatModal()
-sendAdminChatMessage()
-```
-A private, two-way text line to a human admin — completely separate from the AI conversation and from the one-way `pollAdminMessages()` push above.
-- `openAdminChatModal()` resets the message list and starts polling `GET /api/admin-chat/messages?since_id=...` every 4 seconds while the modal is open; `closeAdminChatModal()` stops the polling interval.
-- `pollAdminChat()` appends any new messages to `adminChatAllMessages` and re-renders.
-- `renderAdminChatMessages()` draws each message as a bubble labeled "You" or "Admin" with a timestamp; `escapeAdminChatHtml()` escapes user-entered text before it's inserted as HTML, so a message can't break the chat layout or inject markup.
-- `sendAdminChatMessage()` posts the typed message to `POST /api/admin-chat/send`, clears the textarea, and immediately re-polls so the sent message shows up without waiting for the next interval tick.
-- The textarea auto-grows like the main composer, and `Enter` (without Shift) sends the message instead of inserting a newline.
+The backend can also serve the frontend itself (`SERVE_FRONTEND = True`, the default). On `localhost` and on `*.pythonanywhere.com` the frontend then calls `/api/...` on the same origin, which means one deployment is enough.
 
 ---
 
-## pwa-update.js — install & live-update popup
+## Project structure
 
-Shared by both `index.html` and `login.html`. Registers `sw.js` and shows a small "New version available" toast whenever a fresh deploy is detected while the app is already open:
-- On load, if a new service worker is already waiting (e.g. the tab was open in the background during a deploy) or one finishes installing later, `showUpdateToast()` displays the popup with a **Refresh** and a dismiss button.
-- Tapping **Refresh** sends the waiting worker a `SKIP_WAITING` message so it activates immediately; the page then reloads exactly once (via the `controllerchange` listener) so it's actually running the new files.
-- The service worker registration is also nudged to re-check for updates every 5 minutes and whenever the tab becomes visible again, since some browsers otherwise only check on full navigation.
-
-## sw.js — service worker
-
-- **App-shell caching is network-first, not cache-first.** Every same-origin `GET` request first tries the real network (`cache: "no-store"`); only if that fails (offline) does it fall back to the cached copy. This was a deliberate fix — the previous cache-first strategy was why users kept seeing an old version of the app after a deploy. `/api/` and `/admin/` requests are always left alone and go straight to the network.
-- `SW_VERSION` is bumped on any deploy that should force a clean cache; `activate` deletes any cache that doesn't match the current version.
-- The worker does **not** call `self.skipWaiting()` on install — it waits for the user to tap "Refresh" in the `pwa-update.js` popup, so an active session is never yanked out from under someone mid-use.
-- **Push notifications**: a `push` event handler shows a real OS-level notification (title/body/icon from the payload sent by the backend's `send_push_to_user()`), and a `notificationclick` handler either focuses an already-open tab pointing at the relevant URL or opens a new one.
+```
+Beyonder-Ai-2.0/
+├── README.md
+├── backend/
+│   ├── run.py                  # local dev server  (python run.py)
+│   ├── wsgi.py                 # entry point for PythonAnywhere
+│   ├── config.example.py       # copy to config.py (never committed)
+│   ├── requirements.txt
+│   └── beyonder/
+│       ├── __init__.py         # create_app(): wires everything together
+│       ├── settings.py         # reads config.py -> typed Settings
+│       ├── database/           # one file per table: only SQL lives here
+│       │   ├── schema.py       #   tables, indexes, safe auto-migrations
+│       │   └── users, chats, auth_tokens, otp_codes, rate_limits, notifications,
+│       │       support, push_subscriptions, login_logs, audit, app_settings,
+│       │       stats, maintenance, connection
+│       ├── services/           # business logic
+│       │   ├── auth_service.py #   login, sessions, admin check
+│       │   ├── otp_service.py  #   e-mail codes (signup + reset)
+│       │   ├── mailer.py       #   Gmail SMTP
+│       │   ├── push_service.py #   Web Push (VAPID)
+│       │   ├── rate_limit.py, security.py, housekeeping.py, deploy_service.py
+│       ├── middleware/         # login_required / admin_required, maintenance gate, headers
+│       ├── routes/             # HTTP endpoints
+│       │   ├── auth, chat, profile, support, push, health, webhook
+│       │   └── admin/          #   overview, users, chats, support, broadcast, logs, system
+│       └── utils/              # responses, validators, time, request info
+└── frontend/
+    ├── index.html              # chat app
+    ├── login.html              # login / signup / OTP / forgot / reset
+    ├── admin.html              # admin dashboard
+    ├── manifest.json, sw.js    # PWA
+    ├── assets/icons/
+    ├── css/
+    │   ├── main.css            # imports everything below (the pages link only this)
+    │   ├── base/  layout/  components/  chat/  pages/
+    └── js/
+        ├── core/               # config, api, auth, storage, dom, theme, toast, banner
+        ├── chat/               # the chat page (main.js is the entry point)
+        ├── auth/login.js       # the login page
+        ├── admin/              # the dashboard (one file per tab)
+        └── pwa/                # service-worker registration, install button, push
+```
 
 ---
 
-## Backend endpoints referenced above (in `app.py`)
+## Quick start (on your computer or phone)
 
-| Endpoint | Purpose |
-|---|---|
-| `POST /api/login` | Email + password → returns a token |
-| `POST /api/signup/send-otp` | Starts signup, emails a 6-digit code |
-| `POST /api/signup/verify-otp` | Confirms the code, creates the account, returns a token |
-| `POST /api/forgot-password/send-otp` | Emails a reset code (always reports success, even for unknown emails) |
-| `POST /api/forgot-password/reset` | Confirms the reset code, sets a new password |
-| `GET /api/me` | Given a token, confirms whether it's still valid |
-| `POST /api/logout` | Invalidates a token server-side |
-| `POST /api/save-chat` | Logs one exchange to the database, scoped to a `session_id` (requires a valid token) |
-| `GET /api/chat-history` | Returns saved history for a given `session_id` |
-| `GET /api/chat-sessions` | Lists a user's past chat sessions (id + title) for the history sidebar |
-| `GET /api/check-messages` | Polls for new admin → user messages pushed into the AI chat |
-| `GET /api/profile` | Returns the logged-in user's name, address, email, avatar |
-| `POST /api/profile/update` | Updates name / address / avatar |
-| `POST /api/profile/change-password` | Changes the account password (requires current password) |
-| `GET /api/admin-chat/messages` | Polls the private user ↔ admin chat thread |
-| `POST /api/admin-chat/send` | Sends a message on the private user ↔ admin chat thread |
-| `GET /api/push/vapid-public-key` | Returns the server's public VAPID key for Web Push subscriptions |
-| `POST /api/push/subscribe` | Registers a device's push subscription |
-| `POST /api/push/unsubscribe` | Removes a device's push subscription (called on logout) |
-| `GET /admin`, `POST /admin/login`, `POST /admin/delete-user` | Separate, session-cookie-based admin dashboard — unrelated to the token system above; also the source of the `?admin_token=` "Login As" hand-off |
+```bash
+cd backend
+cp config.example.py config.py      # then edit it (see "Configuration")
+pip install -r requirements.txt
+python run.py
+```
 
-Tokens and pending OTPs are stored **in memory** (plain Python dicts), not in the database — meaning a server restart on PythonAnywhere logs everyone out and clears any in-progress signups/resets. This is a known, accepted limitation for a small project; a production app would move these into the database or a cache like Redis.
+Open `http://localhost:5000`. The backend serves the frontend, so that is all.
+
+`run.py` starts Flask in debug mode and listens on all interfaces so a phone on the same Wi-Fi can open it. It is for development only. In production the server uses `wsgi.py`.
+
+The database is created automatically at `backend/data/beyonder.db` the first time the app starts. When you update the code later, new columns and indexes are added to an existing database by themselves, so users and chats survive.
+
+---
+
+## Configuration
+
+### `backend/config.py`
+
+Required:
+
+| Setting        | Meaning                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SECRET_KEY`   | A long random string. The app refuses to start while it is empty or still the placeholder. It is used to hash tokens and OTPs, so **changing it signs everybody out**. |
+| `ADMIN_EMAILS` | List of e-mails that are admins, e.g. `["you@gmail.com"]`.                                                                                                             |
+
+E-mail (needed for signup and password-reset codes):
+
+| Setting              | Meaning                                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `GMAIL_ADDRESS`      | The Gmail account that sends the codes                                                                                |
+| `GMAIL_APP_PASSWORD` | A Gmail **App Password** (Google account → Security → 2-Step Verification → App passwords). Not your normal password. |
+
+Optional (defaults in brackets):
+
+| Setting                                                             | Meaning                                                                                                                                                           |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ALLOWED_ORIGINS`                                                   | Websites allowed to call the API from another domain, e.g. `["https://yourname.github.io"]`. Empty = any. Not needed when the backend serves the frontend itself. |
+| `OTP_EXPIRY_SECONDS` (600) · `OTP_RESEND_COOLDOWN_SECONDS` (60)     | Code lifetime and the wait before another code can be requested                                                                                                   |
+| `OTP_MAX_VERIFY_ATTEMPTS` (5) · `OTP_SEND_MAX_PER_HOUR_PER_IP` (10) | Brute-force limits for codes                                                                                                                                      |
+| `LOGIN_MAX_ATTEMPTS` (5) · `LOGIN_ATTEMPT_WINDOW_SECONDS` (900)     | Failed-login limit per e-mail (an IP gets 4× as many)                                                                                                             |
+| `MIN_PASSWORD_LENGTH` (8) · `MAX_PASSWORD_LENGTH` (128)             | Password rules                                                                                                                                                    |
+| `TOKEN_MAX_AGE_SECONDS` (30 days)                                   | How long a login lasts                                                                                                                                            |
+| `PRESENCE_ONLINE_WINDOW_SECONDS` (90)                               | "Online now" means seen within this time                                                                                                                          |
+| `CHAT_HISTORY_LIMIT` (300)                                          | Messages loaded when a chat is opened                                                                                                                             |
+| `MAX_AVATAR_BASE64_CHARS` (400000)                                  | Maximum profile-photo size                                                                                                                                        |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CLAIM_EMAIL`        | Enable Web Push (see below)                                                                                                                                       |
+| `KILL_SWITCH_PASSWORD`                                              | Enables the "Erase all data" button. Empty = button disabled.                                                                                                     |
+| `WEBHOOK_SECRET`, `PYTHONANYWHERE_WSGI_FILE`                        | Enable GitHub → PythonAnywhere auto-deploy (see below)                                                                                                            |
+| `DB_PATH` (`backend/data/beyonder.db`) · `SERVE_FRONTEND` (`True`)  | Database location · let Flask serve `frontend/`                                                                                                                   |
+
+### `frontend/js/core/config.js`
+
+The only frontend file you ever edit for URLs:
+
+```js
+const PYTHONANYWHERE_URL = "https://<your-user>.pythonanywhere.com"; // the Flask backend
+const AI_API_URL = "https://<your-project>.vercel.app/api/chat"; // the beyonder-api proxy
+```
+
+`API_BASE` is empty (same origin) on `localhost`, `127.0.0.1` and `*.pythonanywhere.com`, and `PYTHONANYWHERE_URL` anywhere else. The same file holds the polling intervals (`INBOX_POLL_MS`, `SUPPORT_POLL_MS`, …), `AI_CONTEXT_TURNS` (how many past messages are sent to the AI, 40) and `AI_TIMEOUT_MS` (60 s).
+
+### Make yourself an admin
+
+1. Put your e-mail in `ADMIN_EMAILS` and restart / reload.
+2. Sign up normally with that e-mail.
+3. Log in. Admins are sent straight to `admin.html`; the 💬 button in its header opens the chat app. In the chat menu, admins also get an **Admin Panel** shortcut.
+
+---
+
+## Deploying
+
+### 1. Backend on PythonAnywhere
+
+1. In a Bash console: clone the repo, then `cd <repo>/backend`, `pip install --user -r requirements.txt`, `cp config.example.py config.py` and edit it.
+2. **Web** tab → _Add a new web app_ → _Manual configuration_ (pick your Python version).
+3. Open the WSGI configuration file and replace its content with:
+
+    ```python
+    import sys
+    path = "/home/<your-user>/<repo-folder>/backend"
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
+    from beyonder import create_app
+    application = create_app()
+    ```
+
+    (This is exactly what `backend/wsgi.py` does. That file is there for hosts that start the app with a command such as `gunicorn wsgi:application`.)
+
+4. Press **Reload**, then open `https://<your-user>.pythonanywhere.com/api/health`. It should answer `{"success": true, "status": "ok", ...}`.
+
+Because `SERVE_FRONTEND` is on, `https://<your-user>.pythonanywhere.com/` is already the full app. You do not need to set up static files.
+
+### 2. AI proxy on Vercel
+
+Deploy the `beyonder-api` repo and set `GEMINI_API_KEY`, `GROQ_API_KEY` and (recommended) `BACKEND_URL`. Everything is explained in that repo's README. Then put its URL into `AI_API_URL` above.
+
+### 3. Frontend on another host (optional)
+
+The `frontend/` folder is plain static files, so any static host works. If you do this, put the frontend's origin (for example `https://yourname.github.io`) into `ALLOWED_ORIGINS` in `config.py` and the proxy's `ALLOWED_ORIGINS`.
+
+### 4. Auto-deploy from GitHub (optional)
+
+1. Set `WEBHOOK_SECRET` to a random string, and `PYTHONANYWHERE_WSGI_FILE` to the path shown on the Web tab (for example `/var/www/<your-user>_pythonanywhere_com_wsgi.py`).
+2. GitHub repo → Settings → Webhooks → Add webhook: Payload URL `https://<your-user>.pythonanywhere.com/api/webhook`, content type `application/json`, the same secret, "Just the push event".
+3. On every push the server runs `git pull --ff-only` and touches the WSGI file, which reloads the app. Requests are accepted only with a valid GitHub signature (`X-Hub-Signature-256`) or the `X-Webhook-Secret` header.
+
+### 5. Push notifications (optional)
+
+Generate a VAPID key pair (for example `npx web-push generate-vapid-keys`) and fill `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_CLAIM_EMAIL` (`mailto:you@example.com`). `pywebpush` is in `requirements.txt`. Admin → Settings → System shows whether push is ready. Users then see **Enable Notifications** in their menu; nothing ever prompts on its own.
+
+---
+
+## API reference
+
+Everything is JSON. Success: `{ "success": true, ... }`. Failure: `{ "success": false, "message": "...", "code"?: "auth" | "forbidden" | "maintenance" }` with a suitable HTTP status. Tokens go in the `Authorization` header.
+
+### Public
+
+| Endpoint                             | Purpose                                                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `GET /api/health`                    | Is the server alive                                                                           |
+| `GET /api/public-config`             | Announcement, maintenance state, sign-ups open?, push available?                              |
+| `POST /api/login`                    | e-mail + password → token                                                                     |
+| `POST /api/signup/send-otp`          | Validates the form and e-mails a 6-digit code                                                 |
+| `POST /api/signup/verify-otp`        | Checks the code, creates the account, returns a token (logged in straight away)               |
+| `GET /api/me`                        | Is this token still valid? (`logged_in`, `is_admin`, `impersonated`)                          |
+| `POST /api/logout`                   | Revokes the token                                                                             |
+| `POST /api/forgot-password/send-otp` | Sends a reset code. Always answers success, so it can't be used to find out who is registered |
+| `POST /api/forgot-password/reset`    | Code + new password; signs the user out everywhere                                            |
+| `GET /api/push/vapid-public-key`     | Public key for Web Push                                                                       |
+| `POST /api/webhook`                  | GitHub auto-deploy                                                                            |
+
+### Logged-in user
+
+| Endpoint                                                         | Purpose                                                          |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/logout-all`                                           | Sign out every other device                                      |
+| `POST /api/save-chat`                                            | Store one exchange (`user_message`, `ai_response`, `session_id`) |
+| `GET /api/chat-history?session_id=`                              | Messages of one chat (admin messages carry `source: "admin"`)    |
+| `GET /api/chat-sessions` · `DELETE /api/chat-sessions/<id>`      | List / delete chats                                              |
+| `GET /api/inbox?session_id=`                                     | Delivers pending admin messages / broadcasts into that chat      |
+| `GET /api/profile` · `POST /api/profile/update`                  | Read / change name, address, avatar                              |
+| `POST /api/profile/change-password`                              | Needs the current password; other devices are signed out         |
+| `POST /api/profile/delete-account`                               | Needs the password; erases the account and all data              |
+| `POST /api/push/subscribe` · `POST /api/push/unsubscribe`        | Register / remove this device                                    |
+| `POST /api/support/send` · `GET /api/support/messages?since_id=` | "Chat with Admin"                                                |
+
+### Admin (`/api/admin/...`, admins only)
+
+| Endpoint                                                                                                              | Purpose                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `GET /overview` · `GET /online`                                                                                       | Dashboard numbers, online users                                                                |
+| `GET /users` · `POST /users`                                                                                          | List (search, banned filter, paging) / create                                                  |
+| `GET /users/<email>` · `DELETE /users/<email>`                                                                        | Details with sessions and recent logins / delete with all data                                 |
+| `POST /users/<email>/update` · `/ban` · `/reset-password` · `/logout` · `/impersonate` · `/message`                   | Edit, ban or unban, set or generate a password, sign out everywhere, log in as, send a message |
+| `GET /users/<email>/export`                                                                                           | Download everything about a user as JSON                                                       |
+| `GET /users/<email>/sessions` · `DELETE /users/<email>/sessions/<id>` · `DELETE /users/<email>/chats`                 | Chats of one user                                                                              |
+| `GET /chats` · `DELETE /chats/<id>`                                                                                   | Search all chats, delete a message                                                             |
+| `GET /support/threads` · `GET /support/thread/<email>` · `POST /support/reply` · `DELETE /support/thread/<email>`     | Support inbox                                                                                  |
+| `POST /broadcast`                                                                                                     | `audience: "all" \| "online"`, optional `push`                                                 |
+| `GET /logs` · `GET /audit` · `DELETE /sessions/<id-prefix>`                                                           | Login history, audit trail, revoke a session                                                   |
+| `GET` / `POST /settings`                                                                                              | Sign-ups, maintenance, announcement                                                            |
+| `GET /system/info` · `POST /system/purge` · `POST /system/vacuum` · `GET /system/backup` · `POST /system/kill-switch` | Maintenance tools                                                                              |
+
+---
+
+## How the frontend works
+
+Every page loads one ES-module entry point, which wires the small modules together.
+
+**`js/core/`: shared by all pages**
+
+- `config.js`: URLs and timings (see above).
+- `api.js`: the one `fetch` wrapper. Adds the token, parses JSON and throws an `ApiError` carrying the server's message. A `401` with `code: "auth"` clears the token and redirects to `login.html`. A `maintenance` reply fires a `beyonder:maintenance` event so the page can show a banner.
+- `auth.js`: `requireLogin()` (checks `/api/me` or redirects), `logout()`, `homeFor()` (admins → `admin.html`, others → `index.html`) and the "log in as user" hand-off.
+- `storage.js`: safe wrappers around `localStorage` / `sessionStorage`. A token in `sessionStorage` belongs to that one tab only. This is what lets an admin "log in as" a user in a new tab without losing their own login.
+- `dom.js`: `h("div", {class: "x"}, children)` builds elements with `textContent`, so user text can never inject HTML. Also date helpers and the avatar colour palette.
+- `theme.js`, `toast.js`, `banner.js`: theme toggle, toasts, announcement / maintenance banners.
+
+**`js/chat/`: the chat page (`main.js` boots it)**
+
+Boot order: take over an impersonation token → theme → register service worker → `requireLogin()` → session, sidebar, composer, model picker, profile modal, support, install button → load profile → reveal the UI → load public config (banners, push) → load history → start the inbox poll.
+
+- `session.js` / `state.js`: each chat is a **session** (`chat_<random>_<time>`); `state` is the shared in-memory data.
+- `composer.js`: sending. The user's bubble is shown, the question goes to the AI and, when the answer arrives, it is saved with `/api/save-chat`. Switching to another chat mid-answer is safe because the session id is captured first. On failure the turn is removed from the context and an error bubble with **Try again** is shown. On phones Enter inserts a new line; on a computer Enter sends and Shift+Enter inserts a new line.
+- `ai.js`: builds the context (admin messages are left out, consecutive same-role messages are merged, the last 40 turns are kept and it always starts with a user turn) and calls the proxy with a 60 s timeout and friendly error messages.
+- `prompt.js`: the system prompt, personalised with the user's name and address.
+- `messages.js`, `typewriter.js`, `markdown.js`: drawing messages. Markdown is sanitised with DOMPurify, maths is rendered with KaTeX, code blocks get a **Copy** button.
+- `models.js`: the **+** model menu, the choice is remembered.
+- `sidebar.js`, `history.js`: menu, past chats, new chat, delete chat.
+- `profile.js`, `support.js`, `inbox.js`: profile modal, Chat with Admin (polls every 4 s while open, with an unread dot), delivery of admin messages (every 30 s).
+
+**`js/auth/login.js`:** the five screens of `login.html` (login, sign-up, OTP, forgot, reset), the password strength meter and the resend countdown that follows the server's `resend_after`.
+
+**`js/admin/`:** `main.js` is a tiny hash router (`admin.html#users?q=anu`) and each tab is one module with a `render(root, params)` function. `ui.js` holds the shared modal, confirm / prompt dialogs, pager and badges.
+
+**`js/pwa/`:** `register.js` (service worker + update popup), `install.js` (Install App button), `push.js` (notifications).
+
+---
+
+## PWA and updates
+
+`sw.js` is **network-first**: it always tries the real network and uses its cache only when the device is offline, so a normal reload always gets the newest files. It does not take over by itself. When a new version is found, a "New version available" popup appears and **Refresh** activates it, so nobody is interrupted in the middle of a chat. API calls are never cached. Bump `SW_VERSION` in `sw.js` on a release that should clear old cached files.
+
+---
+
+## Security notes
+
+- Passwords are hashed with Werkzeug. Raw login tokens and OTPs are never stored: only HMAC-SHA256 hashes (keyed with `SECRET_KEY`).
+- Sessions live in the database, so a server restart does not log anybody out (they expire after 30 days).
+- Rate limits are stored in the database too, so they survive restarts and work with several workers: failed logins, code requests per IP, code guesses.
+- Banning a user, resetting a password or changing a password signs the affected devices out immediately.
+- An admin "log in as user" session lasts 1 hour, is marked in the session list and the login log, and cannot use the admin API.
+- Every admin action is written to the audit log.
+- The kill switch needs `KILL_SWITCH_PASSWORD` plus the typed phrase `DELETE EVERYTHING`. Download a backup first.
+- Responses carry `X-Content-Type-Options`, `Referrer-Policy` and `X-Frame-Options`; API responses are `no-store`. Requests are limited to 2 MB.
+- Admins can read all chats from the dashboard. Tell your users.
+
+---
+
+## Troubleshooting
+
+| Problem                                                    | Fix                                                                                                                                |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `config.py not found in backend folder`                    | `cp config.example.py config.py`                                                                                                   |
+| `SECRET_KEY in config.py is empty`                         | Put a long random string in `SECRET_KEY`                                                                                           |
+| No verification e-mail arrives                             | Admin → Settings → System: "E-mail (OTP)" must say READY. Use a Gmail App Password, not your normal password.                      |
+| AI answers fail in the browser with a CORS error           | The proxy must allow the `Authorization` header (the current `beyonder-api` does) and its `ALLOWED_ORIGINS` must include your site |
+| "Your session has expired" in the AI chat                  | `BACKEND_URL` on the proxy points at a different backend than the one you logged in to                                             |
+| "Can't reach the server" with the frontend on another host | Check `PYTHONANYWHERE_URL` in `config.js` and `ALLOWED_ORIGINS` in `config.py`                                                     |
+| Users still see an old version                             | Wait for the update popup or reload; for a forced clean-up bump `SW_VERSION`                                                       |
+| Everyone got logged out                                    | `SECRET_KEY` was changed                                                                                                           |
+
+---
+
+## Credits
+
+Created and developed by Anubhab Dutta & Arnab Adhikari.
