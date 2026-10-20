@@ -1,6 +1,6 @@
 import { api } from "../core/api.js";
 import { CONFIG } from "../core/config.js";
-import { clear, debounce, formatDateTime, h, icon, timeAgo } from "../core/dom.js";
+import { append, clear, debounce, formatDateTime, h, icon, timeAgo } from "../core/dom.js";
 import { toast, toastError } from "../core/toast.js";
 import { avatar, badge, busy, confirmDialog, downloadFromApi, empty, errorBox, field, loading, openModal, pager, promptDialog, showSecret } from "./ui.js";
 
@@ -139,7 +139,7 @@ export function render(root, params, ctx) {
 
         const kv = (pairs) => h("dl", { class: "kv" }, pairs.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]));
 
-        clear(modal.body).append(
+        append(clear(modal.body), [
             h("div", { class: "row static" }, avatar(user.name), h("div", { class: "grow" },
                 h("div", { class: "title" }, user.name, user.is_admin && badge("ADMIN", "admin"), user.is_banned && badge("BANNED", "bad")),
                 h("div", { class: "meta" }, user.email))),
@@ -165,7 +165,8 @@ export function render(root, params, ctx) {
                 user.recent_logins.length ? user.recent_logins.map((l) =>
                     h("div", { class: "log-line" }, badge(l.success ? "OK" : "FAIL", l.success ? "good" : "bad"),
                         h("div", { class: "grow" }, `${l.ip || "?"}${l.note ? ` · ${l.note}` : ""}`), h("time", {}, formatDateTime(l.timestamp))))
-                    : empty("No logins yet.")));
+                    : empty("No logins yet.")),
+        ]);
     }
 
     root.append(h("div", { class: "toolbar" }, search, filter, addBtn), listBox, pagerBox);

@@ -1,5 +1,5 @@
 import { api } from "../core/api.js";
-import { clear, h, icon, timeAgo } from "../core/dom.js";
+import { append, clear, h, icon, timeAgo } from "../core/dom.js";
 import { avatar, empty, errorBox, loading, statCard } from "./ui.js";
 
 function barChart(title, iconClass, series) {
@@ -15,7 +15,7 @@ function barChart(title, iconClass, series) {
 
 function paint(root, data) {
     const s = data.stats;
-    clear(root).append(
+    append(clear(root), [
         h("div", { class: "stat-grid" },
             statCard("Users", s.users_total),
             statCard("Online now", data.online_count, "good"),
@@ -37,7 +37,8 @@ function paint(root, data) {
                         h("div", { class: "title" }, u.name), h("div", { class: "meta" }, `${u.email} · seen ${timeAgo(u.last_seen)}`)), h("span", { class: "dot" }))))
                 : empty("Nobody is online right now.")),
         barChart("New sign-ups (14 days)", "fa-solid fa-user-plus", s.signups_series),
-        barChart("AI messages (14 days)", "fa-solid fa-comments", s.messages_series));
+        barChart("AI messages (14 days)", "fa-solid fa-comments", s.messages_series),
+    ]);
 }
 
 export function render(root) {
