@@ -16,7 +16,7 @@
 // and (2) if the user already has the tab open during a deploy, they get
 // asked to refresh instead of silently keeps using stale code.
 
-const SW_VERSION = "v4"; // bump this string on any deploy that should force a clean cache
+const SW_VERSION = "v5"; // bump this string on any deploy that should force a clean cache
 const CACHE_NAME = `beyonder-shell-${SW_VERSION}`;
 
 // Only the essentials are pre-cached. Every other file (the js/ and css/ modules) is cached

@@ -1,37 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Beyonder AI - Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Beyonder AI - Admin</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
 
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/pages/admin.css">
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/pages/admin.css" />
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a0b10">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-</head>
-<body class="admin-page">
-  <div class="bg-glow"></div>
+        <link rel="manifest" href="manifest.json" />
+        <meta name="theme-color" content="#0a0b10" />
+        <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    </head>
+    <body class="admin-page">
+        <div class="bg-glow"></div>
 
-  <header class="admin-top">
-    <div class="logo-circle"><span id="logo"><i class="fa-solid fa-atom"></i></span></div>
-    <h1>Beyonder <span>Admin</span><span class="who" id="admin-who" style="display:block"></span></h1>
-    <button id="open-app-btn" class="icon-btn" title="Open the chat app" aria-label="Open the chat app" type="button"><i class="fa-solid fa-message"></i></button>
-    <button id="theme-toggle-btn" class="icon-btn" title="Switch theme" aria-label="Switch theme" type="button"><i class="fa-solid fa-moon"></i></button>
-    <button id="admin-logout-btn" class="icon-btn" title="Log out" aria-label="Log out" type="button"><i class="fa-solid fa-right-from-bracket"></i></button>
-  </header>
+        <header class="admin-top">
+            <div class="logo-circle">
+                <span id="logo"><i class="fa-solid fa-atom"></i></span>
+            </div>
+            <h1>
+                Beyonder <span>Admin</span
+                ><span class="who" id="admin-who" style="display: block"></span>
+            </h1>
+            <button
+                id="open-app-btn"
+                class="icon-btn"
+                title="Open the chat app"
+                aria-label="Open the chat app"
+                type="button"
+            >
+                <i class="fa-solid fa-message"></i>
+            </button>
+            <button
+                id="theme-toggle-btn"
+                class="icon-btn"
+                title="Switch theme"
+                aria-label="Switch theme"
+                type="button"
+            >
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <button
+                id="admin-logout-btn"
+                class="icon-btn"
+                title="Log out"
+                aria-label="Log out"
+                type="button"
+            >
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </header>
 
-  <div class="admin-tabs" id="admin-tabs" role="tablist" aria-label="Admin sections"></div>
+        <div
+            class="admin-tabs"
+            id="admin-tabs"
+            role="tablist"
+            aria-label="Admin sections"
+        ></div>
 
-  <main id="admin-view"></main>
+        <main id="admin-view"></main>
 
-  <script type="module" src="js/admin/main.js"></script>
-</body>
+        <script type="module" src="js/admin/main.js"></script>
+    </body>
 </html>

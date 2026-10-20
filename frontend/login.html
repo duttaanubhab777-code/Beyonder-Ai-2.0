@@ -1,209 +1,384 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Beyonder AI - Login</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <title>Beyonder AI - Login</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
 
-<link rel="stylesheet" href="css/main.css">
-<link rel="stylesheet" href="css/pages/login.css">
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/pages/login.css" />
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0b10">
-<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Beyonder AI">
-</head>
-<body>
+        <link rel="manifest" href="manifest.json" />
+        <meta name="theme-color" content="#0a0b10" />
+        <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Beyonder AI" />
+    </head>
+    <body>
+        <div class="bg-glow"></div>
 
-<div class="bg-glow"></div>
-
-<nav class="ai">
-    <span></span>
-    <div class="logo-wrapper">
-        <div class="logo-circle">
-            <span id="logo"><i class="fa-solid fa-atom"></i></span>
-        </div>
-        <h1>Beyonder <span>AI</span></h1>
-    </div>
-    <div class="nav-actions">
-        <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle dark or light theme" type="button">
-            <i class="fa-solid fa-moon"></i>
-        </button>
-    </div>
-</nav>
-
-<div class="auth-page-wrapper">
-
-    <!-- ===== LOGIN ===== -->
-    <div id="login-screen" class="screen active">
-        <div class="auth-card">
-            <h2>Welcome Back</h2>
-            <p class="subtitle">Login to chat with Beyonder AI</p>
-
-            <form class="auth-form" id="login-form" autocomplete="on" novalidate>
-                <div class="input-group">
-                    <i class="fa-regular fa-envelope field-icon"></i>
-                    <input type="email" id="login-email" class="auth-input" placeholder="Email Address" autocomplete="email" required>
+        <nav class="ai">
+            <span></span>
+            <div class="logo-wrapper">
+                <div class="logo-circle">
+                    <span id="logo"><i class="fa-solid fa-atom"></i></span>
                 </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock field-icon"></i>
-                    <input type="password" id="login-password" class="auth-input" placeholder="Password" autocomplete="current-password" required>
-                    <button type="button" class="toggle-pass" data-target="login-password" aria-label="Show password">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
-                </div>
-                <div id="login-error" class="auth-error"></div>
-                <button type="submit" id="login-submit-btn" class="auth-btn">
-                    <span class="btn-text">Login</span>
+                <h1>Beyonder <span>AI</span></h1>
+            </div>
+            <div class="nav-actions">
+                <button
+                    id="theme-toggle-btn"
+                    class="icon-btn"
+                    title="Toggle theme"
+                    aria-label="Toggle dark or light theme"
+                    type="button"
+                >
+                    <i class="fa-solid fa-moon"></i>
                 </button>
-            </form>
-
-            <div class="auth-switch">
-                Don't have an account? <span data-switch="signup-screen">Sign Up</span>
             </div>
-            <div class="auth-switch">
-                <span data-switch="forgot-screen">Forgot password?</span>
+        </nav>
+
+        <div class="auth-page-wrapper">
+            <!-- ===== LOGIN ===== -->
+            <div id="login-screen" class="screen active">
+                <div class="auth-card">
+                    <h2>Welcome Back</h2>
+                    <p class="subtitle">Login to chat with Beyonder AI</p>
+
+                    <form
+                        class="auth-form"
+                        id="login-form"
+                        autocomplete="on"
+                        novalidate
+                    >
+                        <div class="input-group">
+                            <i class="fa-regular fa-envelope field-icon"></i>
+                            <input
+                                type="email"
+                                id="login-email"
+                                class="auth-input"
+                                placeholder="Email Address"
+                                autocomplete="email"
+                                required
+                            />
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock field-icon"></i>
+                            <input
+                                type="password"
+                                id="login-password"
+                                class="auth-input"
+                                placeholder="Password"
+                                autocomplete="current-password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="toggle-pass"
+                                data-target="login-password"
+                                aria-label="Show password"
+                            >
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="login-error" class="auth-error"></div>
+                        <button
+                            type="submit"
+                            id="login-submit-btn"
+                            class="auth-btn"
+                        >
+                            <span class="btn-text">Login</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        Don't have an account?
+                        <span data-switch="signup-screen">Sign Up</span>
+                    </div>
+                    <div class="auth-switch">
+                        <span data-switch="forgot-screen"
+                            >Forgot password?</span
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SIGNUP ===== -->
+            <div id="signup-screen" class="screen">
+                <div class="auth-card">
+                    <h2>Create Account</h2>
+                    <p class="subtitle">Join Beyonder AI today</p>
+
+                    <form
+                        class="auth-form"
+                        id="signup-form"
+                        autocomplete="on"
+                        novalidate
+                    >
+                        <div class="input-group">
+                            <i class="fa-regular fa-user field-icon"></i>
+                            <input
+                                type="text"
+                                id="signup-name"
+                                class="auth-input"
+                                placeholder="Full Name"
+                                autocomplete="name"
+                                required
+                            />
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-regular fa-envelope field-icon"></i>
+                            <input
+                                type="email"
+                                id="signup-email"
+                                class="auth-input"
+                                placeholder="Email Address"
+                                autocomplete="email"
+                                required
+                            />
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock field-icon"></i>
+                            <input
+                                type="password"
+                                id="signup-password"
+                                class="auth-input"
+                                placeholder="Create Password"
+                                autocomplete="new-password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="toggle-pass"
+                                data-target="signup-password"
+                                aria-label="Show password"
+                            >
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="strength-wrap">
+                            <div class="strength-track">
+                                <div
+                                    id="strength-fill"
+                                    class="strength-fill"
+                                ></div>
+                            </div>
+                            <div id="strength-label" class="strength-label">
+                                Password strength
+                            </div>
+                        </div>
+                        <div id="signup-error" class="auth-error"></div>
+                        <button
+                            type="submit"
+                            id="signup-submit-btn"
+                            class="auth-btn"
+                        >
+                            <span class="btn-text">Send OTP</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        Already have an account?
+                        <span data-switch="login-screen">Login</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== OTP ===== -->
+            <div id="otp-screen" class="screen">
+                <div class="auth-card">
+                    <h2>Verify Email</h2>
+                    <p class="subtitle">We sent a 6-digit code to your email</p>
+
+                    <form
+                        class="auth-form"
+                        id="otp-form"
+                        autocomplete="off"
+                        novalidate
+                    >
+                        <div
+                            id="otp-success-msg"
+                            class="otp-msg"
+                            style="display: none"
+                        >
+                            OTP Sent Successfully!
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-key field-icon"></i>
+                            <input
+                                type="text"
+                                id="otp-input"
+                                class="auth-input otp-input"
+                                placeholder="------"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                maxlength="6"
+                                autocomplete="one-time-code"
+                                required
+                            />
+                        </div>
+                        <div id="otp-error" class="auth-error"></div>
+                        <button
+                            type="submit"
+                            id="otp-submit-btn"
+                            class="auth-btn"
+                        >
+                            <span class="btn-text">Verify &amp; Sign Up</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        <span id="otp-resend-btn" data-resend="signup"
+                            >Resend code</span
+                        >
+                        <span id="otp-timer"></span>
+                    </div>
+
+                    <div class="auth-switch">
+                        Wrong email?
+                        <span data-switch="signup-screen">Go back</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FORGOT PASSWORD: EMAIL ===== -->
+            <div id="forgot-screen" class="screen">
+                <div class="auth-card">
+                    <h2>Reset Password</h2>
+                    <p class="subtitle">
+                        Enter your email to receive a reset code
+                    </p>
+
+                    <form
+                        class="auth-form"
+                        id="forgot-form"
+                        autocomplete="off"
+                        novalidate
+                    >
+                        <div class="input-group">
+                            <i class="fa-regular fa-envelope field-icon"></i>
+                            <input
+                                type="email"
+                                id="forgot-email"
+                                class="auth-input"
+                                placeholder="Email Address"
+                                autocomplete="email"
+                                required
+                            />
+                        </div>
+                        <div id="forgot-error" class="auth-error"></div>
+                        <button
+                            type="submit"
+                            id="forgot-submit-btn"
+                            class="auth-btn"
+                        >
+                            <span class="btn-text">Send Reset Code</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        <span data-switch="login-screen">Back to Login</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== FORGOT PASSWORD: OTP + NEW PASSWORD ===== -->
+            <div id="reset-screen" class="screen">
+                <div class="auth-card">
+                    <h2>Enter Reset Code</h2>
+                    <p class="subtitle">Check your email for the code</p>
+
+                    <form
+                        class="auth-form"
+                        id="reset-form"
+                        autocomplete="off"
+                        novalidate
+                    >
+                        <div class="input-group">
+                            <i class="fa-solid fa-key field-icon"></i>
+                            <input
+                                type="text"
+                                id="reset-otp"
+                                class="auth-input otp-input"
+                                placeholder="------"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                maxlength="6"
+                                autocomplete="one-time-code"
+                                required
+                            />
+                        </div>
+                        <div class="input-group">
+                            <i class="fa-solid fa-lock field-icon"></i>
+                            <input
+                                type="password"
+                                id="reset-new-password"
+                                class="auth-input"
+                                placeholder="New Password"
+                                autocomplete="new-password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="toggle-pass"
+                                data-target="reset-new-password"
+                                aria-label="Show password"
+                            >
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="strength-wrap">
+                            <div class="strength-track">
+                                <div
+                                    id="reset-strength-fill"
+                                    class="strength-fill"
+                                ></div>
+                            </div>
+                            <div
+                                id="reset-strength-label"
+                                class="strength-label"
+                            >
+                                Password strength
+                            </div>
+                        </div>
+                        <div id="reset-error" class="auth-error"></div>
+                        <button
+                            type="submit"
+                            id="reset-submit-btn"
+                            class="auth-btn"
+                        >
+                            <span class="btn-text">Reset Password</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-switch">
+                        <span id="reset-resend-btn" data-resend="reset"
+                            >Resend code</span
+                        >
+                        <span id="reset-timer"></span>
+                    </div>
+                    <div class="auth-switch">
+                        <span data-switch="login-screen">Back to Login</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- ===== SIGNUP ===== -->
-    <div id="signup-screen" class="screen">
-        <div class="auth-card">
-            <h2>Create Account</h2>
-            <p class="subtitle">Join Beyonder AI today</p>
-
-            <form class="auth-form" id="signup-form" autocomplete="on" novalidate>
-                <div class="input-group">
-                    <i class="fa-regular fa-user field-icon"></i>
-                    <input type="text" id="signup-name" class="auth-input" placeholder="Full Name" autocomplete="name" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-regular fa-envelope field-icon"></i>
-                    <input type="email" id="signup-email" class="auth-input" placeholder="Email Address" autocomplete="email" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock field-icon"></i>
-                    <input type="password" id="signup-password" class="auth-input" placeholder="Create Password" autocomplete="new-password" required>
-                    <button type="button" class="toggle-pass" data-target="signup-password" aria-label="Show password">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
-                </div>
-                <div class="strength-wrap">
-                    <div class="strength-track"><div id="strength-fill" class="strength-fill"></div></div>
-                    <div id="strength-label" class="strength-label">Password strength</div>
-                </div>
-                <div id="signup-error" class="auth-error"></div>
-                <button type="submit" id="signup-submit-btn" class="auth-btn">
-                    <span class="btn-text">Send OTP</span>
-                </button>
-            </form>
-
-            <div class="auth-switch">
-                Already have an account? <span data-switch="login-screen">Login</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== OTP ===== -->
-    <div id="otp-screen" class="screen">
-        <div class="auth-card">
-            <h2>Verify Email</h2>
-            <p class="subtitle">We sent a 6-digit code to your email</p>
-
-            <form class="auth-form" id="otp-form" autocomplete="off" novalidate>
-                <div id="otp-success-msg" class="otp-msg" style="display:none;">OTP Sent Successfully!</div>
-                <div class="input-group">
-                    <i class="fa-solid fa-key field-icon"></i>
-                    <input type="text" id="otp-input" class="auth-input otp-input" placeholder="------" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required>
-                </div>
-                <div id="otp-error" class="auth-error"></div>
-                <button type="submit" id="otp-submit-btn" class="auth-btn">
-                    <span class="btn-text">Verify &amp; Sign Up</span>
-                </button>
-            </form>
-
-            <div class="auth-switch">
-                <span id="otp-resend-btn" data-resend="signup">Resend code</span>
-                <span id="otp-timer"></span>
-            </div>
-
-            <div class="auth-switch">
-                Wrong email? <span data-switch="signup-screen">Go back</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== FORGOT PASSWORD: EMAIL ===== -->
-    <div id="forgot-screen" class="screen">
-        <div class="auth-card">
-            <h2>Reset Password</h2>
-            <p class="subtitle">Enter your email to receive a reset code</p>
-
-            <form class="auth-form" id="forgot-form" autocomplete="off" novalidate>
-                <div class="input-group">
-                    <i class="fa-regular fa-envelope field-icon"></i>
-                    <input type="email" id="forgot-email" class="auth-input" placeholder="Email Address" autocomplete="email" required>
-                </div>
-                <div id="forgot-error" class="auth-error"></div>
-                <button type="submit" id="forgot-submit-btn" class="auth-btn">
-                    <span class="btn-text">Send Reset Code</span>
-                </button>
-            </form>
-
-            <div class="auth-switch">
-                <span data-switch="login-screen">Back to Login</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== FORGOT PASSWORD: OTP + NEW PASSWORD ===== -->
-    <div id="reset-screen" class="screen">
-        <div class="auth-card">
-            <h2>Enter Reset Code</h2>
-            <p class="subtitle">Check your email for the code</p>
-
-            <form class="auth-form" id="reset-form" autocomplete="off" novalidate>
-                <div class="input-group">
-                    <i class="fa-solid fa-key field-icon"></i>
-                    <input type="text" id="reset-otp" class="auth-input otp-input" placeholder="------" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock field-icon"></i>
-                    <input type="password" id="reset-new-password" class="auth-input" placeholder="New Password" autocomplete="new-password" required>
-                    <button type="button" class="toggle-pass" data-target="reset-new-password" aria-label="Show password">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
-                </div>
-                <div class="strength-wrap">
-                    <div class="strength-track"><div id="reset-strength-fill" class="strength-fill"></div></div>
-                    <div id="reset-strength-label" class="strength-label">Password strength</div>
-                </div>
-                <div id="reset-error" class="auth-error"></div>
-                <button type="submit" id="reset-submit-btn" class="auth-btn">
-                    <span class="btn-text">Reset Password</span>
-                </button>
-            </form>
-
-            <div class="auth-switch">
-                <span id="reset-resend-btn" data-resend="reset">Resend code</span>
-                <span id="reset-timer"></span>
-            </div>
-            <div class="auth-switch">
-                <span data-switch="login-screen">Back to Login</span>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<script type="module" src="js/auth/login.js"></script>
-</body>
+        <script type="module" src="js/auth/login.js"></script>
+    </body>
 </html>
