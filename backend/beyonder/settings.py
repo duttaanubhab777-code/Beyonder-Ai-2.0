@@ -32,6 +32,10 @@ class Settings:
     OTP_EXPIRY_SECONDS: int = 600
     OTP_RESEND_COOLDOWN_SECONDS: int = 60
     OTP_MAX_VERIFY_ATTEMPTS: int = 5
+    OTP_SEND_MAX_PER_HOUR_PER_IP: int = 10
+    MIN_PASSWORD_LENGTH: int = 8
+    MAX_PASSWORD_LENGTH: int = 128
+    MAX_AVATAR_BASE64_CHARS: int = 400_000
     TOKEN_MAX_AGE_SECONDS: int = 30 * 24 * 60 * 60
     IMPERSONATION_MAX_AGE_SECONDS: int = 60 * 60
     PRESENCE_ONLINE_WINDOW_SECONDS: int = 90
@@ -46,6 +50,16 @@ class Settings:
     WEBHOOK_SECRET: str = ""
     PYTHONANYWHERE_WSGI_FILE: str = ""
     SERVE_FRONTEND: bool = True
+
+    @property
+    def mail_enabled(self) -> bool:
+        """True when Gmail SMTP credentials are configured (needed for OTP e-mails)."""
+        return bool(self.GMAIL_ADDRESS and self.GMAIL_APP_PASSWORD)
+
+    @property
+    def push_enabled(self) -> bool:
+        """True when both VAPID keys are configured (needed for Web Push)."""
+        return bool(self.VAPID_PUBLIC_KEY and self.VAPID_PRIVATE_KEY)
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
@@ -66,6 +80,10 @@ def get_settings() -> Settings:
         OTP_EXPIRY_SECONDS=int(g("OTP_EXPIRY_SECONDS", 600)),
         OTP_RESEND_COOLDOWN_SECONDS=int(g("OTP_RESEND_COOLDOWN_SECONDS", 60)),
         OTP_MAX_VERIFY_ATTEMPTS=int(g("OTP_MAX_VERIFY_ATTEMPTS", 5)),
+        OTP_SEND_MAX_PER_HOUR_PER_IP=int(g("OTP_SEND_MAX_PER_HOUR_PER_IP", 10)),
+        MIN_PASSWORD_LENGTH=int(g("MIN_PASSWORD_LENGTH", 8)),
+        MAX_PASSWORD_LENGTH=int(g("MAX_PASSWORD_LENGTH", 128)),
+        MAX_AVATAR_BASE64_CHARS=int(g("MAX_AVATAR_BASE64_CHARS", 400_000)),
         TOKEN_MAX_AGE_SECONDS=int(g("TOKEN_MAX_AGE_SECONDS", 30 * 24 * 60 * 60)),
         PRESENCE_ONLINE_WINDOW_SECONDS=int(g("PRESENCE_ONLINE_WINDOW_SECONDS", 90)),
         LOGIN_MAX_ATTEMPTS=int(g("LOGIN_MAX_ATTEMPTS", 5)),
