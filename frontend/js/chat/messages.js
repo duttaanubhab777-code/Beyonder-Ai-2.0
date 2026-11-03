@@ -9,6 +9,9 @@ export const scrollToBottom = () => { area().scrollTop = area().scrollHeight; };
 export const clearChat = () => area().replaceChildren();
 const removeHero = () => area().querySelector(".chat-hero")?.remove();
 
+/** The Beyonder AI logo (same image as the navbar / app icon). */
+const logoImg = () => h("img", { src: "assets/icons/logo-256.png", alt: "", draggable: false });
+
 const SUGGESTIONS = [
     { icon: "fa-lightbulb", text: "Explain a tricky topic in simple terms" },
     { icon: "fa-code", text: "Help me find a bug in my code" },
@@ -24,7 +27,7 @@ export function showHero() {
     }, icon(`fa-solid ${s.icon}`), h("span", {}, s.text)));
 
     area().append(h("div", { class: "chat-hero" },
-        h("div", { class: "chat-hero-logo" }, icon("fa-solid fa-atom")),
+        h("div", { class: "chat-hero-logo" }, logoImg()),
         h("h2", {}, "Hi, I'm Beyonder AI"),
         h("p", {}, "Hello, I am Beyonder. How can I help you?"),
         h("div", { class: "chat-hero-chips" }, chips),
@@ -59,7 +62,7 @@ export function addAiMessage(text, { animate = true, fromAdmin = false } = {}) {
         ? h("div", { class: "msg-text" }, h("div", { class: "admin-tag" }, icon("fa-solid fa-headset"), " Admin"), content)
         : content;
     const bubble = h("div", { class: "message incoming" },
-        h("div", { class: "msg-logo" }, icon("fa-solid fa-atom")), textBox);
+        h("div", { class: "msg-logo" }, logoImg()), textBox);
     area().append(bubble);
 
     const done = () => {
@@ -95,7 +98,7 @@ export function addErrorMessage(message, onRetry) {
 export function showTyping() {
     removeHero();
     area().append(h("div", { class: "message incoming", id: "typing-indicator" },
-        h("div", { class: "msg-logo" }, icon("fa-solid fa-atom")),
+        h("div", { class: "msg-logo" }, logoImg()),
         h("div", { class: "typing-dots" }, h("span"), h("span"), h("span"))));
     scrollToBottom();
 }

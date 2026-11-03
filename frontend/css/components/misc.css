@@ -8,11 +8,6 @@
     box-shadow: var(--neu-out-sm), 0 0 14px rgba(90, 50, 250, 0.25);
 }
 
-[data-theme="light"] #logo i {
-    color: var(--accent);
-    text-shadow: 0 0 10px rgba(90, 50, 250, 0.55);
-}
-
 [data-theme="light"] .msg-logo {
     background: var(--bg-panel);
     border: none;

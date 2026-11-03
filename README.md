@@ -94,7 +94,7 @@ Beyonder-Ai-2.0/
     ├── login.html              # login / signup / OTP / forgot / reset
     ├── admin.html              # admin dashboard
     ├── manifest.json, sw.js    # PWA
-    ├── assets/icons/
+    ├── assets/icons/           # Beyonder_Ai.png (master logo) + logo-256, favicon-32, icon-192/512 (PWA)
     ├── css/
     │   ├── main.css            # imports everything below (the pages link only this)
     │   ├── base/  layout/  components/  chat/  pages/

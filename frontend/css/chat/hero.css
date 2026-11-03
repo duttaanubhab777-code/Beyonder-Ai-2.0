@@ -29,9 +29,17 @@
     border:1px solid rgba(124,108,255,0.35);
     box-shadow:0 0 26px rgba(124,108,255,0.35);
     margin-bottom:14px;
+    overflow:hidden;
 }
 
-.chat-hero-logo i{ animation:driftSpin 6s linear infinite; }
+.chat-hero-logo img,
+.msg-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:50%;
+    display:block;
+}
 
 .chat-hero h2{
     font-family:'Space Grotesk', sans-serif;
@@ -162,5 +170,6 @@
     color:var(--accent-2);
     background:rgba(0,217,255,0.08);
     border:1px solid rgba(0,217,255,0.25);
+    overflow:hidden;
 }
 
